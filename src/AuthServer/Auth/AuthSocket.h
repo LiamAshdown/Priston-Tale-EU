@@ -34,15 +34,15 @@ namespace Priston
         //      HANDLERS      //
         ///////////////////////
         void ExecutePacket(const OpcodeHandler& opHandler, Packet packet);
-
         void HandleNULL(Packet packet);
+        void HandleServerMessage(Packet packet);
         void HandleLoginUser(Packet packet);
 
     private:
         virtual bool ProcessIncomingData() override;
 
     private:
-        void EncryptPacket(const uint8* packet, const uint16& length);
+        void SendPacket(const uint8* packet, const uint16& length);
         Packet* DecryptPacket();
     };
 }

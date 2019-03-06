@@ -45,7 +45,7 @@ namespace Priston
         return false;
     }
     //-----------------------------------------------//
-    void AuthSocket::EncryptPacket(const uint8* packet, const uint16& length)
+    void AuthSocket::SendPacket(const uint8* packet, const uint16& length)
     {
         // TODO; Optimize this code. We don't need to create a new struct.
         //       We also need to add a LOG_INFO << Sent packet...
@@ -76,6 +76,10 @@ namespace Priston
         LOG_ERROR << sOpcode->GetOpCodeName(packet.sHeader) << " not currently handled!";
     }
     //-----------------------------------------------//
+    void AuthSocket::HandleServerMessage(Packet packet)
+    {
+    }
+    //-----------------------------------------------//
                 ////////////////////////
                 //      HANDLERS      //
                 ///////////////////////
@@ -85,7 +89,7 @@ namespace Priston
         // Convert our Packet into PacketLoginUser
         PacketLoginUser* packetUser = (PacketLoginUser*)&packet;
 
-        // This is where we check if the account exists
+        /* // This is where we check if the account exists
         QueryAuthDatabase database;
         database.Query("select * from auth penis");
 
@@ -104,7 +108,25 @@ namespace Priston
         loginCode.sEncKeyIndex = 0;
         loginCode.sEncrypted = 1;
 
-        EncryptPacket((uint8*)(Packet*)&loginCode, loginCode.sLength);
+        SendPacket((uint8*)(Packet*)&loginCode, loginCode.sLength); */
+
+
+        PacketChecksumFunctionList packetCheck;
+        packetCheck.sLength       = sizeof(PacketChecksumFunctionList);
+        packetCheck.sHeader       = PacketsHeader::SMSG_CHECK_SUM;
+        packetCheck.sKey          = CHECK_SUM_PACKET;
+        packetCheck.sEncKeyIndex  = 0;
+        packetCheck.sEncrypted    = 1;
+
+        SendPacket((uint8*)(Packet*)&packetCheck, packetCheck.sLength);
+
+        PacketWindowList packetWindow;
+        packetWindow.sLength      = sizeof(PacketWindowList);
+        packetWindow.sHeader      = SMSG_WINDOW_LIST;
+        packetWindow.sEncKeyIndex = 0;
+        packetWindow.sEncrypted   = 0;
+
+        SendPacket((uint8*)(Packet*)&packetWindow, packetWindow.sLength);
     }
     //-----------------------------------------------//
 }

@@ -46,8 +46,12 @@ enum AccountLogin
 	ACCOUNTLOGIN_TempBanned			        = -18,	                        ///< TEMPORARILY BANNED
 };
 
-///< STRUCTURES
+enum CheckSum
+{
+    CHECK_SUM_PACKET                        = 0x6A
+};
 
+///< STRUCTURES
 struct PacketReceiving
 {
     PacketReceiving() : sInUse(0), sDelete(0) {}
@@ -65,7 +69,7 @@ typedef struct PacketStruct
     uint32	                                sHeader;				        ///< PACKET HEADER
 }Packet;
 
-struct PacketLoginUser : PacketStruct
+typedef struct PacketLoginStruct : PacketStruct
 {
 	uint32									sUnk[3];                        ///< UNKNOWN    
 	char									sUserID[32];                    ///< USERID
@@ -77,17 +81,17 @@ struct PacketLoginUser : PacketStruct
     uint32									sWidthScreen;                   ///< GAME WIDTH
     uint32									sHeightScreen;                  ///< GAME HEIGHT
     uint32									sSystemOS;                      ///< SYSTEM OPERATING SYSTEM
-};
+}PacketLoginUser;
 
-struct PacketAccountLoginCode : PacketStruct
+typedef struct PacketAccountLoginCodeStruct : PacketStruct
 {
     uint32			                        sReserved;                      ///< NAME RESERVED          
     AccountLogin	                        sCode;                          ///< AccountLogin ENUM
     int32				                    sFailCode;                      ///< FAIL CODE
     char			                        sMessage[256];                  ///< REASON WHY 
-};
+}PacketAccountLoginCode;
 
-struct PacketSending
+typedef struct PacketSendingStruct
 {
     union
     {
@@ -96,4 +100,23 @@ struct PacketSending
     };
     uint32		                            sSize;                          ///< PACKET SIZE?
     uint8		                            sPacket[8192];                  ///< PACKET
-};
+}PacketSending;
+
+typedef struct ChecksumFunctionStruct
+{
+    uint32										sSize;                      ///< SIZE
+    uint32										sAddress;                   ///< ADDRRESS?
+    uint32										sCheckSum;                  ///< UNKNOWN
+}ChecksumFunction;
+
+typedef struct PacketChecksumFunctionListStructs : Packet
+{
+    uint8										sKey;                       ///< KEY ENCRYPTION?
+    ChecksumFunction							sCheckSum[400];             ///< UNKNOWN
+}PacketChecksumFunctionList;
+
+typedef struct PacketWindowListStruct : Packet
+{
+    int											iCount;
+    char										szaWindowName[50][64];
+}PacketWindowList;

@@ -23,6 +23,7 @@
 
 enum PacketsHeader
 {
+    ///< CMSG
     CMSG_SERVER_LIST                                = 0x484700C0,
     CMSG_SAVE_DATA                                  = 0x48470081,
 	CMSG_SELECT_CHARACTER							= 0x48470082,
@@ -30,9 +31,14 @@ enum PacketsHeader
 	CMSG_CREATE_CHARACTER							= 0x48470088,
 	CMSG_DELETE_CHARACTER							= 0x48470087,
 	CMSG_VERSION									= 0x4847008A, // edit chaos
-	CMSG_ACCOUNT_LOGIN_CODE							= 0x48470023,
 	CMSG_LOGIN_USER								    = 0x48480001,
-    CMSG_PING                                       = 0x435A0007
+    CMSG_PING                                       = 0x435A0007,
+
+    ///< SMSG
+    SMSG_ACCOUNT_LOGIN_CODE							= 0x48470023,
+    SMSG_CHECK_SUM                                  = 0x6A6A0006,
+    SMSG_WINDOW_LIST                                = 0x6A6A000E,
+
 };
 
 namespace Priston

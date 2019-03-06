@@ -46,11 +46,11 @@ BindIP = "127.0.0.1"
 
 #
 #
-#    NetworkProcessors
-#        Description: Amount of worker threads to launch NetworkThread
+#    NetworkThreadProcessors
+#        Description: Amount of worker threads to launch NetworkThreadProcessors
 #        Default:     1
 
-NetworkProcessors = 1
+NetworkThreadProcessors = 1
 
 #
 ###################################################################################################
@@ -66,7 +66,7 @@ NetworkProcessors = 1
 #                                                                 section my.ini)
 #        Default:     "127.0.0.1;3306;priston;priston;auth"
 
-AuthDatabaseInfo = "127.0.0.1;3306;trinity;trinity;auth"
+AuthDatabaseInfo = "127.0.0.1;3306;priston;priston;auth"
 
 #
 #    AuthDatabase.WorkerThreads

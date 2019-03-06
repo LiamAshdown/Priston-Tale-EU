@@ -35,6 +35,8 @@ namespace Priston
     //-----------------------------------------------//
     void Opcodes::InitializePackets()
     {
+        ///< CMSG
+
         StorePacket(PacketsHeader::CMSG_LOGIN_USER,         "CMSG_LOGIN_USER",                      &AuthSocket::HandleLoginUser        );
         StorePacket(PacketsHeader::CMSG_SAVE_DATA,          "CMSG_SAVE_DATA",                       &AuthSocket::HandleNULL             );
         StorePacket(PacketsHeader::CMSG_SELECT_CHARACTER,   "CMSG_SELECT_CHARACTER",                &AuthSocket::HandleNULL             );
@@ -42,8 +44,12 @@ namespace Priston
         StorePacket(PacketsHeader::CMSG_CREATE_CHARACTER,   "CMSG_CREATE_CHARACTER",                &AuthSocket::HandleNULL             );
         StorePacket(PacketsHeader::CMSG_DELETE_CHARACTER,   "CMSG_DELETE_CHARACTER",                &AuthSocket::HandleNULL             );
         StorePacket(PacketsHeader::CMSG_VERSION,            "CMSG_VERSION",                         &AuthSocket::HandleNULL             );
-        StorePacket(PacketsHeader::CMSG_ACCOUNT_LOGIN_CODE, "CMSG_ACCOUNT_LOGIN_CODE",              &AuthSocket::HandleNULL             );
         StorePacket(PacketsHeader::CMSG_PING,               "CMSG_PING",                            &AuthSocket::HandleNULL             );
+
+        ///SMSG
+        StorePacket(PacketsHeader::SMSG_ACCOUNT_LOGIN_CODE, "SMSG_ACCOUNT_LOGIN_CODE",              &AuthSocket::HandleServerMessage    );
+        StorePacket(PacketsHeader::SMSG_CHECK_SUM,          "SMSG_CHECK_SUM",                       &AuthSocket::HandleServerMessage    );
+        StorePacket(PacketsHeader::SMSG_WINDOW_LIST,        "SMSG_WINDOW_LIST",                     &AuthSocket::HandleServerMessage    );
     }
     //-----------------------------------------------//
     void Opcodes::StorePacket(const uint64& opcode, char const * name, void(AuthSocket::* handler)(Packet packet))

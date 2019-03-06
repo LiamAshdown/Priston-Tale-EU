@@ -46,14 +46,13 @@ int main()
         return -1;
     }
 
-    Priston::Listener<Priston::AuthSocket> listener(sConfig->GetStringDefault("BindIP", "127.0.0.1"), sConfig->GetIntDefault("AuthServerPort", DEFAULT_AUTH_PORT), 
-        sConfig->GetIntDefault("NetworkProcessors", 1));
-
-    LOG_INFO << "Successfully listening on " << sConfig->GetStringDefault("BindIP", "127.0.0.1") << " and binded on " << sConfig->GetIntDefault("AuthServerPort", DEFAULT_AUTH_PORT);
-
     sOpcode->InitializePackets();
     LOG_INFO << "Opcodes sucessfully loaded!";
 
+    Priston::Listener<Priston::AuthSocket> listener(sConfig->GetStringDefault("BindIP", "127.0.0.1"), sConfig->GetIntDefault("AuthServerPort", DEFAULT_AUTH_PORT), 
+        sConfig->GetIntDefault("NetworkThreadProcessors", 1));
+
+    LOG_INFO << "Successfully listening on " << sConfig->GetStringDefault("BindIP", "127.0.0.1") << " and binded on " << sConfig->GetIntDefault("AuthServerPort", DEFAULT_AUTH_PORT);
     
     while (true)
     {
