@@ -120,3 +120,4 @@ typedef struct PacketWindowListStruct : Packet
     int											iCount;
     char										szaWindowName[50][64];
 }PacketWindowList;
+

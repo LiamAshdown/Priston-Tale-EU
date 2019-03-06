@@ -24,6 +24,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Config)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Platform)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Database)
 include_directories(${CMAKE_SOURCE_DIR}/dep/mysql/include)
+include_directories(SYSTEM ${OPENSSL_INCLUDE_DIR})
 
 file(GLOB_RECURSE source_list RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "*.cpp" "*.h")
 
@@ -35,7 +36,12 @@ endforeach()
 
 add_library(${LIBRARY_NAME} STATIC ${source_list})
 
+target_link_libraries(${LIBRARY_NAME}
+  PUBLIC ${OPENSSL_LIBRARIES}
+)
+
 target_include_directories(${LIBRARY_NAME}
+  PUBLIC ${OPENSSL_INCLUDE_DIR}
   PRIVATE ${Boost_INCLUDE_DIRS}
 )
 

@@ -24,6 +24,14 @@ if( NOT CMAKE_BUILD_TYPE )
   set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 endif()
 
+if(WIN32)
+  if(PLATFORM MATCHES X86) # 32-bit
+    set(DEP_ARCH Win32)
+  else() # 64-bit
+    set(DEP_ARCH x64)
+  endif()
+endif()
+
 # Add alternate lib dir for boost on windows
 if(WIN32 AND NOT "$ENV{BOOST_ROOT}" STREQUAL "")
   set(BOOST_LIBRARYDIR "$ENV{BOOST_LIBRARYDIR}")
@@ -71,6 +79,13 @@ if(NOT Boost_FOUND)
     endif()
   endif()
   message(FATAL_ERROR "This project requires boost.  Please install from http://www.boost.org")
+endif()
+
+# Win32 OpenSSL
+if(WIN32)
+  set(OPENSSL_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/dep/")
+  set(OPENSSL_LIBRARIES "${CMAKE_SOURCE_DIR}/dep/lib/${DEP_ARCH}_release/libcrypto.dll.lib")
+  set(OPENSSL_DEBUG_LIBRARIES "${CMAKE_SOURCE_DIR}/dep/lib/${DEP_ARCH}_debug/libcrypto.dll.lib")
 endif()
 
 # Add sub directories

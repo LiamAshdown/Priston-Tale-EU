@@ -110,7 +110,6 @@ namespace Priston
 
         SendPacket((uint8*)(Packet*)&loginCode, loginCode.sLength); */
 
-
         PacketChecksumFunctionList packetCheck;
         packetCheck.sLength       = sizeof(PacketChecksumFunctionList);
         packetCheck.sHeader       = PacketsHeader::SMSG_CHECK_SUM;
