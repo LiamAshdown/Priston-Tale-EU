@@ -58,3 +58,4 @@ typedef std::uint8_t uint8;
 typedef std::vector<std::string> Tokens;
 
 #define DEFAULT_AUTH_PORT 10009
+#define DEFAULT_WORLD_PORT 10010

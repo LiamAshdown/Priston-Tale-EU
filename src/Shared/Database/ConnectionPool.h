@@ -136,7 +136,8 @@ namespace Priston
                         }
                         catch (std::exception &e) 
                         {
-
+                            // Call this to prevent warnings
+                            std::string message = e.what();
                             // Error creating a replacement connection
                             throw ConnectionUnavailable();
                         }

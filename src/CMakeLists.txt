@@ -18,3 +18,4 @@
 # Shared must be included first
 add_subdirectory(Shared)
 add_subdirectory(AuthServer)
+add_subdirectory(WorldServer)
