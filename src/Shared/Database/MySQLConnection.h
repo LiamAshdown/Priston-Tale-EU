@@ -76,6 +76,9 @@ namespace Priston
             conn->SQLConnection = std::shared_ptr<sql::Connection>(driver->connect(mHost.c_str(), mUsername.c_str(), mPassword.c_str()));
             conn->SQLConnection->setSchema(mDatabase.c_str());
 
+            IF_LOG(plog::debug)
+                LOG_DEBUG << "Sucessfully connected to " << mDatabase << " database";
+
             return std::static_pointer_cast<Connection>(conn);
         }
 

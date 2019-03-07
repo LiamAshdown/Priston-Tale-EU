@@ -36,13 +36,13 @@ namespace Priston
     //-----------------------------------------------//
     Database::~Database()
     {
-        for (auto itr : mDatabaseCont)
-            delete itr.second;
+        IF_LOG(plog::debug)
+            LOG_DEBUG << "Destructor Database called!";
 
         mDatabaseCont.clear();
     }
     //-----------------------------------------------//
-    DatabaseHolder* Database::GetDatabase(const std::string& database)
+    std::shared_ptr<DatabaseHolder> Database::GetDatabase(const std::string& database)
     {
         DatabaseMap::iterator itr = mDatabaseCont.find(database);
         if (itr != mDatabaseCont.end())
@@ -55,10 +55,7 @@ namespace Priston
     {
         DatabaseMap::iterator itr = mDatabaseCont.find(database);
         if (itr != mDatabaseCont.end())
-        {
-            delete itr->second;
             mDatabaseCont.erase(itr);
-        }
     }
     //-----------------------------------------------//
     bool Database::InitializeConnectionPool(const char* infoString, const uint32 poolSize)
@@ -83,7 +80,7 @@ namespace Priston
             if (iter != tokens.end())
                 database = *iter++;
 
-            DatabaseHolder* newDatabase = new DatabaseHolder;
+            std::shared_ptr<DatabaseHolder> newDatabase = std::make_shared<DatabaseHolder>();
             newDatabase->sUsername = username;
             newDatabase->sPassword = password;
             newDatabase->sDatabaseName = database;
@@ -91,9 +88,9 @@ namespace Priston
             newDatabase->sPort = port;
             newDatabase->sPoolSize = poolSize;
 
-            newDatabase->sConnectionFactory = new MySQLConnectionFactory(newDatabase->sUsername, newDatabase->sPassword, newDatabase->sDatabaseName, 
+            newDatabase->sConnectionFactory = std::make_shared<MySQLConnectionFactory>(newDatabase->sUsername, newDatabase->sPassword, newDatabase->sDatabaseName,
                 newDatabase->sHost, newDatabase->sPort);
-            newDatabase->sPool = new ConnectionPool<MySQLConnection>(newDatabase->sPoolSize, newDatabase->sConnectionFactory);
+            newDatabase->sPool = std::make_shared<ConnectionPool<MySQLConnection>>(newDatabase->sPoolSize, newDatabase->sConnectionFactory);
 
             mDatabaseCont[newDatabase->sDatabaseName] = newDatabase;
             return true;
@@ -110,6 +107,10 @@ namespace Priston
         std::string message = e.what();
 
         LOG_ERROR << message << std::endl;
+
+        // Shut down server if database can no longer be reached
+        if (message.find("has gone away") != std::string::npos)
+            assert(false);
     }
     //-----------------------------------------------//
     Tokens StrSplit(const std::string& src, const std::string& sep)

@@ -27,10 +27,14 @@ namespace Priston
     AuthSocket::AuthSocket(boost::asio::io_service& service, std::function<void(Socket*)> closeHandler) :
         Socket(service, std::move(closeHandler))
     {
+        IF_LOG(plog::debug)
+            sDatabase->GetDatabase("auth")->GetConnectionPool()->GetStats();
     }
     //-----------------------------------------------//
     AuthSocket::~AuthSocket()
     {
+        IF_LOG(plog::debug)
+            LOG_DEBUG << "Destructor AuthSocket called!";
     }
     //-----------------------------------------------//
     bool AuthSocket::ProcessIncomingData()

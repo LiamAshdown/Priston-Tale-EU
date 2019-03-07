@@ -34,6 +34,8 @@ namespace Priston
         Field(){}
         ~Field() 
         {
+            IF_LOG(plog::debug)
+                LOG_DEBUG << "Destructor Field called!";
         }
 
     public:

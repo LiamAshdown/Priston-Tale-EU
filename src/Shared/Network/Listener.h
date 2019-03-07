@@ -77,6 +77,9 @@ namespace Priston
     template <typename SocketType>
     Listener<SocketType>::~Listener()
     {
+        IF_LOG(plog::debug)
+            LOG_DEBUG << "Destructor SocketType called!";
+
         mAcceptor->close();
         mService->stop();
         mAcceptorThread.join();

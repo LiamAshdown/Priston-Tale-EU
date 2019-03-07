@@ -35,6 +35,9 @@ namespace Priston
         }
         ~QueryDatabase()
         {
+            IF_LOG(plog::debug)
+                LOG_DEBUG << "Destructor QueryDatabase called!";
+
             sDatabase->GetDatabase(mDatabase)->GetConnectionPool()->UnBorrow(mConnection);
         }
 

@@ -70,7 +70,7 @@ namespace Priston
     class ConnectionPool
     {
     public:
-        ConnectionPool(std::size_t poolSize, ConnectionFactory* factory)
+        ConnectionPool(std::size_t poolSize, std::shared_ptr<ConnectionFactory> factory)
         {
             // Setup
             mPoolSize = poolSize;
@@ -85,7 +85,7 @@ namespace Priston
 
         ~ConnectionPool() {};
 
-        ConnectionPoolStats GetStats()
+        void GetStats()
         {
             std::lock_guard<std::mutex> lock(mMutex);
 
@@ -93,7 +93,11 @@ namespace Priston
             stats.sPoolSize = mPool.size();
             stats.sBorrowedSize = mBorrowed.size();
 
-            return stats;
+            IF_LOG(plog::debug)
+            {
+                LOG_DEBUG << "Pool Size: " << stats.sPoolSize;
+                LOG_DEBUG << "Borrowed Size: " << stats.sBorrowedSize;
+            }
         }
 
         /*
@@ -119,7 +123,9 @@ namespace Priston
                         try 
                         {
                             // If we are able to create a new connection, return it
-                            LOG_INFO << "Creating new connection to replace discarded connection";
+                            IF_LOG(plog::debug)
+                                LOG_DEBUG << "Creating new connection to replace discarded connection";
+
                             std::shared_ptr<Connection> conn = mFactory->Create();
 
                             mBorrowed.erase(it);
@@ -170,7 +176,7 @@ namespace Priston
         };
 
     protected:
-        ConnectionFactory* mFactory;
+        std::shared_ptr<ConnectionFactory> mFactory;
         std::size_t mPoolSize;
         std::deque<std::shared_ptr<Connection>> mPool;
         std::set<std::shared_ptr<Connection>> mBorrowed;

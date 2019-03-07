@@ -37,6 +37,9 @@ namespace Priston
             // Allow io_service::run() to exit.
             mWork.reset();
 
+            IF_LOG(plog::debug)
+                LOG_DEBUG << "Destructor NetworkThread called!";
+
             // Attempt to gracefully close any open connections
             for (auto i = mSockets.begin(); i != mSockets.end();)
             {

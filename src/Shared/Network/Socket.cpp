@@ -49,6 +49,9 @@ namespace Priston
     {
         std::lock_guard<std::mutex> guard(mClosedMutex);
 
+        IF_LOG(plog::debug)
+            LOG_DEBUG << "Closing Socket!";
+
         if (IsClosed())
             return;
 

@@ -31,17 +31,17 @@ namespace Priston
         DatabaseStruct() : sConnectionFactory(nullptr), sPool(nullptr) {}
         ~DatabaseStruct()
         {
-            delete sConnectionFactory;
-            delete sPool;
+            IF_LOG(plog::debug)
+                LOG_DEBUG << "Destructor DatabaseStruct called!";
         }
 
-        ConnectionPool<MySQLConnection>* GetConnectionPool()
+        std::shared_ptr<ConnectionPool<MySQLConnection>> GetConnectionPool()
         {
             return sPool;
         }
 
-        MySQLConnectionFactory* sConnectionFactory;
-        ConnectionPool<MySQLConnection>* sPool;
+        std::shared_ptr<MySQLConnectionFactory> sConnectionFactory;
+        std::shared_ptr<ConnectionPool<MySQLConnection>> sPool;
 
         std::string sUsername;
         std::string sPassword;
@@ -52,7 +52,7 @@ namespace Priston
 
     }DatabaseHolder;
 
-    typedef std::map<std::string, DatabaseHolder*> DatabaseMap;
+    typedef std::map<std::string, std::shared_ptr<DatabaseHolder>> DatabaseMap;
 
     class Database
     {
@@ -67,7 +67,9 @@ namespace Priston
         bool InitializeConnectionPool(const char* infoString, const uint32 poolSize);
         void PrintException(sql::SQLException &e, char* file, char* function, uint32 line);
 
-        DatabaseHolder* GetDatabase(const std::string& database);
+        std::shared_ptr<DatabaseHolder> GetDatabase(const std::string& database);
+
+    protected:
         void RemoveDatabase(const std::string& database);
 
     private:
