@@ -163,7 +163,7 @@ namespace Priston
             std::lock_guard<std::mutex> lock(mMutex);
 
             // Push onto the pool
-            mPool.push_back(boost::static_pointer_cast<Connection>(conn));
+            mPool.push_back(std::static_pointer_cast<Connection>(conn));
 
             // Unborrow
             mBorrowed.erase(conn);
