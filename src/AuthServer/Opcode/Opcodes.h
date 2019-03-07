@@ -30,7 +30,7 @@ enum PacketsHeader
 	CMSG_USER_INFO									= 0x48470086,
 	CMSG_CREATE_CHARACTER							= 0x48470088,
 	CMSG_DELETE_CHARACTER							= 0x48470087,
-	CMSG_VERSION									= 0x4847008A, // edit chaos
+	CMSG_VERSION									= 0x4847008A,
 	CMSG_LOGIN_USER								    = 0x48480001,
     CMSG_PING                                       = 0x435A0007,
 
@@ -48,7 +48,7 @@ namespace Priston
     struct OpcodeHandler
     {
         char const* name;
-        void (AuthSocket::*handler)(Packet packet);
+        void (AuthSocket::*handler)(const Packet* packet);
     };
 
     typedef std::map<uint64, OpcodeHandler> OpcodeMap;
@@ -69,7 +69,7 @@ namespace Priston
         const char* GetOpCodeName(const uint64& Id);
 
     private:
-        void StorePacket(const uint64& opcode, char const* name, void (AuthSocket::*handler)(Packet packet));
+        void StorePacket(const uint64& opcode, char const* name, void (AuthSocket::*handler)(const Packet* packet));
 
     private:
         static OpcodeHandler const emptyHandler;

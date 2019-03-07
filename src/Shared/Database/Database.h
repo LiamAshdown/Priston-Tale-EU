@@ -25,6 +25,35 @@
 
 namespace Priston
 {
+    typedef struct DatabaseStruct
+    {
+    public:
+        DatabaseStruct() : sConnectionFactory(nullptr), sPool(nullptr) {}
+        ~DatabaseStruct()
+        {
+            delete sConnectionFactory;
+            delete sPool;
+        }
+
+        ConnectionPool<MySQLConnection>* GetConnectionPool()
+        {
+            return sPool;
+        }
+
+        MySQLConnectionFactory* sConnectionFactory;
+        ConnectionPool<MySQLConnection>* sPool;
+
+        std::string sUsername;
+        std::string sPassword;
+        std::string sPort;
+        std::string sHost;
+        std::string sDatabaseName;
+        uint32 sPoolSize;
+
+    }DatabaseHolder;
+
+    typedef std::map<std::string, DatabaseHolder*> DatabaseMap;
+
     class Database
     {
     public:
@@ -38,19 +67,11 @@ namespace Priston
         bool InitializeConnectionPool(const char* infoString, const uint32 poolSize);
         void PrintException(sql::SQLException &e, char* file, char* function, uint32 line);
 
-        MySQLConnectionFactory* GetConnectionFactory();
-        ConnectionPool<MySQLConnection>* GetConnectionPool();
+        DatabaseHolder* GetDatabase(const std::string& database);
+        void RemoveDatabase(const std::string& database);
 
     private:
-        MySQLConnectionFactory* mConnectionFactory;
-        ConnectionPool<MySQLConnection>* mPool;
-
-        std::string mUsername;
-        std::string mPassword;
-        std::string mPort;
-        std::string mHost;
-        std::string mDatabase;
-        uint32 mPoolSize;
+        DatabaseMap mDatabaseCont;
     };
 }
 #define sDatabase Priston::Database::instance()

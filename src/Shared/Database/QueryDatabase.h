@@ -24,20 +24,26 @@
 
 namespace Priston
 {
-    class QueryAuthDatabase
+    class QueryDatabase
     {
     public:
-        QueryAuthDatabase() {}
-        ~QueryAuthDatabase() {}
+        QueryDatabase(const std::string database)
+        {
+            mDatabase = database;
+            mConnection = sDatabase->GetDatabase(mDatabase)->GetConnectionPool()->Borrow();
+            mSqlConnection = mConnection->SQLConnection;
+        }
+        ~QueryDatabase()
+        {
+            sDatabase->GetDatabase(mDatabase)->GetConnectionPool()->UnBorrow(mConnection);
+        }
 
     public:
-        void Query(std::string query)
+        void QueryExecute(const std::string& query)
         {
-            std::shared_ptr<MySQLConnection> connection = sDatabase->GetConnectionPool()->Borrow();
             try
             {
-                std::shared_ptr<sql::Connection> sqlConnection = connection->SQLConnection;
-                std::shared_ptr<sql::Statement> statement = std::shared_ptr<sql::Statement>(sqlConnection->createStatement());
+                std::shared_ptr<sql::Statement> statement = std::shared_ptr<sql::Statement>(mSqlConnection->createStatement());
                 mResultSet = std::shared_ptr<sql::ResultSet>(statement->executeQuery(query.c_str()));
                 mField.mResultSet = mResultSet;
             }
@@ -47,13 +53,49 @@ namespace Priston
             }
         }
 
-        Field& GetResult()
+        void PreparedStatementQuery(const std::string& query)
         {
-            return mField;
+            try
+            {
+                mPrepareStatement = std::shared_ptr<sql::PreparedStatement>(mSqlConnection->prepareStatement(query.c_str()));
+            }
+            catch (sql::SQLException &e)
+            {
+                sDatabase->PrintException(e, const_cast<char*>(__FILE__), const_cast<char*>(__FUNCTION__), __LINE__);
+            }
         }
 
-    private:
+        std::shared_ptr<sql::PreparedStatement>& GetStatement()
+        {
+            return mPrepareStatement;
+        }
+
+        void ExecuteQuery()
+        {
+            mResultSet = std::shared_ptr<sql::ResultSet>(mPrepareStatement->executeQuery());
+        }
+
+        bool RecordExists()
+        {
+            if (mResultSet->next())
+            {
+                mField.mResultSet = mResultSet;
+                return true;
+            }
+            return false;
+        }
+
+        Field* GetResult()
+        {
+            return &mField;
+        }
+
+    public:
+        std::string mDatabase;
         std::shared_ptr<sql::ResultSet> mResultSet;
+        std::shared_ptr<MySQLConnection> mConnection;
+        std::shared_ptr<sql::Connection> mSqlConnection;
+        std::shared_ptr<sql::PreparedStatement> mPrepareStatement;
         Field mField;
     }; 
 }

@@ -19,6 +19,7 @@
 #include "AuthSocket.h"
 #include "Database/QueryDatabase.h"
 #include "Database/Fields.h"
+#include "Common/SHA1.h"
 //-----------------------------------------------//
 namespace Priston
 {
@@ -36,9 +37,9 @@ namespace Priston
     {
         if (Packet* packet = DecryptPacket())
         {
-            LOG_INFO << "Reading " << sOpcode->GetOpCodeName(packet->sHeader);
+            LOG_INFO << "Recieved " << sOpcode->GetOpCodeName(packet->sHeader) << " " << packet->sHeader;
 
-            ExecutePacket(sOpcode->GetPacket(packet->sHeader), *packet);
+            ExecutePacket(sOpcode->GetPacket(packet->sHeader), packet);
             return true;
         }
 
@@ -60,23 +61,23 @@ namespace Priston
     Packet* AuthSocket::DecryptPacket()
     {
         PacketReceiving packetRecieving{};
-        if (!Read((char*)&packetRecieving.sPacket, ReadLengthRemaining()))
+        if (!Read((char*)packetRecieving.sPacket, ReadLengthRemaining()))
             return nullptr;
 
-        return (Packet*)packetRecieving.sPacket;
+        return (Packet*)&packetRecieving.sPacket;
     }
     //-----------------------------------------------//
-    void AuthSocket::ExecutePacket(const OpcodeHandler& opHandler, Packet packet)
+    void AuthSocket::ExecutePacket(const OpcodeHandler& opHandler, const Packet* packet)
     {
         (this->*opHandler.handler)(packet);
     }
     //-----------------------------------------------//
-    void AuthSocket::HandleNULL(Packet packet)
+    void AuthSocket::HandleNULL(const Packet* packet)
     {
-        LOG_ERROR << sOpcode->GetOpCodeName(packet.sHeader) << " not currently handled!";
+        LOG_ERROR << sOpcode->GetOpCodeName(packet->sHeader) << " not currently handled!";
     }
     //-----------------------------------------------//
-    void AuthSocket::HandleServerMessage(Packet packet)
+    void AuthSocket::HandleServerMessage(const Packet* packet)
     {
     }
     //-----------------------------------------------//
@@ -84,31 +85,51 @@ namespace Priston
                 //      HANDLERS      //
                 ///////////////////////
     //-----------------------------------------------//
-    void AuthSocket::HandleLoginUser(Packet packet)
+    void AuthSocket::HandleLoginUser(const Packet* packet)
     {
         // Convert our Packet into PacketLoginUser
-        PacketLoginUser* packetUser = (PacketLoginUser*)&packet;
+        PacketLoginUser* packetUser = (PacketLoginUser*)packet;
 
-        /* // This is where we check if the account exists
-        QueryAuthDatabase database;
-        database.Query("select * from auth penis");
+        // Query Auth account database
+        QueryDatabase database("auth");
+        database.PreparedStatementQuery("SELECT * FROM account WHERE username = ?");
+        database.GetStatement()->setString(1, static_cast<std::string>(packetUser->sUserID).c_str());
+        database.ExecuteQuery();
 
-        Field fields = database.GetResult();
+        // If username doesn't exist in database
+        if (!database.RecordExists())
+        {
+            PacketAccountLoginCode accountLogin;
+            accountLogin.sLength = sizeof(accountLogin);
+            accountLogin.sHeader = PacketsHeader::SMSG_ACCOUNT_LOGIN_CODE;
+            accountLogin.sReserved = 0;
+            accountLogin.sCode = AccountLogin::ACCOUNTLOGIN_IncorrectName;
+            accountLogin.sFailCode = 1;
+            accountLogin.sEncKeyIndex = 0;
+            accountLogin.sEncrypted = 1;
+            SendPacket((uint8*)(Packet*)&accountLogin, accountLogin.sLength);
+            return;
+        }
 
-        fields[0].GetString(2);
+        Field* fields = database.GetResult();
+        std::string hashedPassword = fields->GetString(3);
 
-        AccountLogin errorCode = ACCOUNTLOGIN_Success;
+        // If our hashed password does not match the same in the database, then send incorrect password packet
+        if (CalculateSHA1Hash(boost::to_upper_copy<std::string>(static_cast<std::string>(packetUser->sUserID)
+            + ":" + static_cast<std::string>(packetUser->sPassword))) != hashedPassword)
+        {
+            PacketAccountLoginCode accountLogin;
+            accountLogin.sLength = sizeof(accountLogin);
+            accountLogin.sHeader = PacketsHeader::SMSG_ACCOUNT_LOGIN_CODE;
+            accountLogin.sReserved = 0;
+            accountLogin.sCode = AccountLogin::ACCOUNTLOGIN_IncorrectPassword;
+            accountLogin.sFailCode = 1;
+            accountLogin.sEncKeyIndex = 0;
+            accountLogin.sEncrypted = 1;
 
-        PacketAccountLoginCode loginCode;
-        loginCode.sLength = sizeof(loginCode);
-        loginCode.sHeader = CMSG_ACCOUNT_LOGIN_CODE;
-        loginCode.sReserved = 0;
-        loginCode.sCode = ACCOUNTLOGIN_IncorrectName;
-        loginCode.sFailCode = 1;
-        loginCode.sEncKeyIndex = 0;
-        loginCode.sEncrypted = 1;
-
-        SendPacket((uint8*)(Packet*)&loginCode, loginCode.sLength); */
+            SendPacket((uint8*)(Packet*)&accountLogin, accountLogin.sLength);
+            return;
+        }
 
         PacketChecksumFunctionList packetCheck;
         packetCheck.sLength       = sizeof(PacketChecksumFunctionList);
@@ -121,11 +142,19 @@ namespace Priston
 
         PacketWindowList packetWindow;
         packetWindow.sLength      = sizeof(PacketWindowList);
-        packetWindow.sHeader      = SMSG_WINDOW_LIST;
+        packetWindow.sHeader      = PacketsHeader::SMSG_WINDOW_LIST;
         packetWindow.sEncKeyIndex = 0;
-        packetWindow.sEncrypted   = 0;
+        packetWindow.sEncrypted   = 1;
 
         SendPacket((uint8*)(Packet*)&packetWindow, packetWindow.sLength);
+    }
+    //-----------------------------------------------//
+    void AuthSocket::HandlePing(const Packet* packet)
+    {
+        PacketPing* packetPing = (PacketPing*)packet;
+        packetPing->sTick = GetTickCount();
+
+        SendPacket((uint8*)(Packet*)&packetPing, packetPing->sLength);
     }
     //-----------------------------------------------//
 }

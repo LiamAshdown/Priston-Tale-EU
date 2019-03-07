@@ -29,16 +29,14 @@ namespace Priston
     {
     public:
         friend class QueryAuthDatabase;
-    public:
-        Field() {}
-        ~Field() {}
 
     public:
-        Field &operator[](uint8 i) 
+        Field(){}
+        ~Field() 
         {
-            return *this;
         }
 
+    public:
         std::string GetString(uint8 i)
         {
             return mResultSet->getString(i);
@@ -74,7 +72,7 @@ namespace Priston
             return mResultSet->getDouble(i);
         }
 
-    private:
+    public:
         std::shared_ptr<sql::ResultSet> mResultSet;
     };
 }

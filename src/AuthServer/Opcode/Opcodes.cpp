@@ -44,7 +44,7 @@ namespace Priston
         StorePacket(PacketsHeader::CMSG_CREATE_CHARACTER,   "CMSG_CREATE_CHARACTER",                &AuthSocket::HandleNULL             );
         StorePacket(PacketsHeader::CMSG_DELETE_CHARACTER,   "CMSG_DELETE_CHARACTER",                &AuthSocket::HandleNULL             );
         StorePacket(PacketsHeader::CMSG_VERSION,            "CMSG_VERSION",                         &AuthSocket::HandleNULL             );
-        StorePacket(PacketsHeader::CMSG_PING,               "CMSG_PING",                            &AuthSocket::HandleNULL             );
+        StorePacket(PacketsHeader::CMSG_PING,               "CMSG_PING",                            &AuthSocket::HandlePing             );
 
         ///SMSG
         StorePacket(PacketsHeader::SMSG_ACCOUNT_LOGIN_CODE, "SMSG_ACCOUNT_LOGIN_CODE",              &AuthSocket::HandleServerMessage    );
@@ -52,7 +52,7 @@ namespace Priston
         StorePacket(PacketsHeader::SMSG_WINDOW_LIST,        "SMSG_WINDOW_LIST",                     &AuthSocket::HandleServerMessage    );
     }
     //-----------------------------------------------//
-    void Opcodes::StorePacket(const uint64& opcode, char const * name, void(AuthSocket::* handler)(Packet packet))
+    void Opcodes::StorePacket(const uint64& opcode, char const * name, void(AuthSocket::* handler)(const Packet* packet))
     {
         OpcodeHandler& ref = mOpcode[opcode];
         ref.name = name;

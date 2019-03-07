@@ -16,10 +16,10 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _PristonTale_Socket_h_
-#define _PristonTale_Socket_h_
+#ifndef _PristonTale_AuthStructures_h_
+#define _PristonTale_AuthStructures_h_
 #include "Common/SharedDefines.h"
-#endif /* _PristonTale_Socket_h_ */
+#endif /* _PristonTale_AuthStructures_h_ */
 
 /*
 # DWORD = uint32
@@ -104,20 +104,48 @@ typedef struct PacketSendingStruct
 
 typedef struct ChecksumFunctionStruct
 {
-    uint32										sSize;                      ///< SIZE
-    uint32										sAddress;                   ///< ADDRRESS?
-    uint32										sCheckSum;                  ///< UNKNOWN
+    uint32								    sSize;                      ///< SIZE
+    uint32								    sAddress;                   ///< ADDRRESS?
+    uint32									sCheckSum;                  ///< UNKNOWN
 }ChecksumFunction;
 
 typedef struct PacketChecksumFunctionListStructs : Packet
 {
-    uint8										sKey;                       ///< KEY ENCRYPTION?
-    ChecksumFunction							sCheckSum[400];             ///< UNKNOWN
+    uint8									sKey;                       ///< KEY ENCRYPTION?
+    ChecksumFunction					    sCheckSum[400];             ///< UNKNOWN
 }PacketChecksumFunctionList;
 
 typedef struct PacketWindowListStruct : Packet
 {
-    int											iCount;
-    char										szaWindowName[50][64];
+    int									    sCount;                     ///< NOT USED
+    char									sWindowName[50][64];        ///< CLIENT WINDOW NAME 
 }PacketWindowList;
+
+typedef struct PacketPingStruct : Packet
+{
+    uint32	                                sTime;                     ///< TIME SINCE TICK
+    uint32	                                sTick;                     ///< GetTickCount
+}PacketPing;
+
+struct	_TRANS_CHAR_INFO
+{
+    char	                                sName[32];				   ///< CHARACTER NAME
+    char	                                sModelName[64];		       ///< MODEL NAME
+    char	                                sModelName2[64];		   ///< MODEL NAME 2
+    uint32	                                sJobCode;			       ///< JOB CODE
+    uint32		                            sLevel;					   ///< CHARACTER LEVEL
+    uint32	                                sBrood;					   ///< BROOD
+    uint32	                                sArmorCode;			       ///< ARMOR CODE
+    uint32		                            sStartField;			   /// BYTE FIELD?
+    uint32		                            sPosX;                     ///< CHARACTER X LOCATION
+    uint32		                            sPosZ;			           ///< CHARACTER Z LOCATION
+    uint32	                                sTemp[13];		           ///< UNKNOWN
+};
+
+struct	PacketUserInfo : Packet
+{
+    char									sUserID[32];                ///< USER ID
+    uint32									sCharCount;                 ///< CHARACTER COUNT
+    _TRANS_CHAR_INFO						sCharacterData[6];          ///< CHARACTER DATA
+};
 

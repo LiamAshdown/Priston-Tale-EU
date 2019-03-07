@@ -33,10 +33,11 @@ namespace Priston
         ////////////////////////
         //      HANDLERS      //
         ///////////////////////
-        void ExecutePacket(const OpcodeHandler& opHandler, Packet packet);
-        void HandleNULL(Packet packet);
-        void HandleServerMessage(Packet packet);
-        void HandleLoginUser(Packet packet);
+        void ExecutePacket(const OpcodeHandler& opHandler, const Packet* packet);
+        void HandleNULL(const Packet* packet);
+        void HandleServerMessage(const Packet* packet);
+        void HandleLoginUser(const Packet* packet);
+        void HandlePing(const Packet* packet);
 
     private:
         virtual bool ProcessIncomingData() override;

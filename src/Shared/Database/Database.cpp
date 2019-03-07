@@ -31,24 +31,34 @@ namespace Priston
     //-----------------------------------------------//
     Database::Database()
     {
-        mConnectionFactory = nullptr;
-        mPool = nullptr;
+
     }
     //-----------------------------------------------//
     Database::~Database()
     {
-        delete mConnectionFactory;
-        delete mPool;
+        for (auto itr : mDatabaseCont)
+            delete itr.second;
+
+        mDatabaseCont.clear();
     }
     //-----------------------------------------------//
-    MySQLConnectionFactory* Database::GetConnectionFactory()
+    DatabaseHolder* Database::GetDatabase(const std::string& database)
     {
-        return mConnectionFactory;
+        DatabaseMap::iterator itr = mDatabaseCont.find(database);
+        if (itr != mDatabaseCont.end())
+            return itr->second;
+
+        return nullptr;
     }
     //-----------------------------------------------//
-    ConnectionPool<MySQLConnection>* Database::GetConnectionPool()
+    void Database::RemoveDatabase(const std::string& database)
     {
-        return mPool;
+        DatabaseMap::iterator itr = mDatabaseCont.find(database);
+        if (itr != mDatabaseCont.end())
+        {
+            delete itr->second;
+            mDatabaseCont.erase(itr);
+        }
     }
     //-----------------------------------------------//
     bool Database::InitializeConnectionPool(const char* infoString, const uint32 poolSize)
@@ -72,16 +82,20 @@ namespace Priston
                 password = *iter++;
             if (iter != tokens.end())
                 database = *iter++;
-            
-            mUsername = username;
-            mPassword = password;
-            mDatabase = database;
-            mHost = host;
-            mPort = port;
-            mPoolSize = poolSize;
 
-            mConnectionFactory = new MySQLConnectionFactory(mUsername, mPassword, mDatabase, mHost, mPort);
-            mPool = new ConnectionPool<MySQLConnection>(poolSize, mConnectionFactory);
+            DatabaseHolder* newDatabase = new DatabaseHolder;
+            newDatabase->sUsername = username;
+            newDatabase->sPassword = password;
+            newDatabase->sDatabaseName = database;
+            newDatabase->sHost = host;
+            newDatabase->sPort = port;
+            newDatabase->sPoolSize = poolSize;
+
+            newDatabase->sConnectionFactory = new MySQLConnectionFactory(newDatabase->sUsername, newDatabase->sPassword, newDatabase->sDatabaseName, 
+                newDatabase->sHost, newDatabase->sPort);
+            newDatabase->sPool = new ConnectionPool<MySQLConnection>(newDatabase->sPoolSize, newDatabase->sConnectionFactory);
+
+            mDatabaseCont[newDatabase->sDatabaseName] = newDatabase;
             return true;
         }
         catch (sql::SQLException &e) 
@@ -96,21 +110,6 @@ namespace Priston
         std::string message = e.what();
 
         LOG_ERROR << message << std::endl;
-
-        if (message.find("has gone away") != std::string::npos) 
-        {
-            if (mConnectionFactory != nullptr)
-            {
-                delete mConnectionFactory;
-                mConnectionFactory = new MySQLConnectionFactory(mUsername, mPassword, mDatabase, mHost, mPort);
-            }
-
-            if (mPool != nullptr)
-            {
-                delete mPool;
-                mPool = new ConnectionPool<MySQLConnection>(mPoolSize, mConnectionFactory);
-            }
-        }
     }
     //-----------------------------------------------//
     Tokens StrSplit(const std::string& src, const std::string& sep)
