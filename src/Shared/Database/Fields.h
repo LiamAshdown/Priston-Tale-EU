@@ -16,8 +16,8 @@
 * along with this program.If not, see < http://www.gnu.org/licenses/>.
 */
 
-#ifndef _PristonTale_Fields_h_
-#define _PristonTale_Fields_h_
+#ifndef _Priston_Fields_h_
+#define _Priston_Fields_h_
 #include "../Common/SharedDefines.h"
 #include "mysql_connection.h"
 #include "MYSQLConnection.h"
@@ -28,7 +28,7 @@ namespace Priston
     class Field
     {
     public:
-        friend class QueryAuthDatabase;
+        friend class QueryDatabase;
 
     public:
         Field(){}
@@ -41,42 +41,67 @@ namespace Priston
     public:
         std::string GetString(uint8 i)
         {
-            return mResultSet->getString(i);
+            return mResultSet->getString(i).c_str();
+        }
+
+        uint16 GetUint8(uint8 i)
+        {
+            return (uint8)mResultSet->getUInt(i);
+        }
+
+        uint16 GetUint16(uint8 i)
+        {
+            return (uint16)mResultSet->getUInt(i);
         }
 
         int32 GetInt32(uint8 i)
         {
-            return mResultSet->getInt(i);
+            return (int32)mResultSet->getInt(i);
         }
 
         int64 GetInt64(uint8 i)
         {
-            return mResultSet->getInt64(i);
+            return (int64)mResultSet->getInt64(i);
         }
 
         uint32 GetUint32(uint8 i)
         {
-            return mResultSet->getUInt(i);
+            return (uint32)mResultSet->getUInt(i);
         }
 
         uint32 GetUint64(uint8 i)
         {
-            return mResultSet->getUInt64(i);
+            return (uint64)mResultSet->getUInt64(i);
         }
 
         bool GetBool(uint8 i)
         {
-            return mResultSet->getBoolean(i);
+            return (bool)mResultSet->getBoolean(i);
         }
 
         double GetDouble(uint8 i)
         {
-            return mResultSet->getDouble(i);
+            return (double)mResultSet->getDouble(i);
+        }
+
+        float GetFloat(uint8 i)
+        {
+            return (float)mResultSet->getDouble(i);
+        }
+
+        bool GetNextResult()
+        {
+            return mResultSet->next();
+        }
+
+        uint32 GetRowCount()
+        {
+            return (uint32)mResultSet->rowsCount();
         }
 
     public:
-        std::shared_ptr<sql::ResultSet> mResultSet;
+        std::unique_ptr<sql::ResultSet> mResultSet;
     };
 }
 
-#endif /* !_PristonTale_Fields_h_ */
+#endif /* !_Priston_Fields_h_ */

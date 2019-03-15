@@ -28,8 +28,8 @@
  * but return the base class.
  */
 
-#ifndef _PristonTale_ConnectionPool_h_
-#define _PristonTale_ConnectionPool_h_
+#ifndef _Priston_ConnectionPool_h_
+#define _Priston_ConnectionPool_h_
 #include <deque>
 #include <set>
 #include <exception>
@@ -37,21 +37,23 @@
 #include <thread>
 #include "Common/SharedDefines.h"
 
+enum ConnectionState
+{
+    Connection_Idle,               // When we borrowed the connection
+    Connection_Prepare,            // When we prepared a query
+    Connection_Query               // When we executed a query
+};
+
 namespace Priston
 {
-    struct ConnectionUnavailable : std::exception 
-    {
-        char const *what() const throw() 
-        {
-            return "Unable to allocate connection";
-        };
-    };
-
     class Connection 
     {
     public:
         Connection() {};
         virtual ~Connection() {};
+        
+    public:
+        ConnectionState connectionState;
     };
 
     class ConnectionFactory 
@@ -92,12 +94,6 @@ namespace Priston
             ConnectionPoolStats stats;
             stats.sPoolSize = mPool.size();
             stats.sBorrowedSize = mBorrowed.size();
-
-            IF_LOG(plog::debug)
-            {
-                LOG_DEBUG << "Pool Size: " << stats.sPoolSize;
-                LOG_DEBUG << "Borrowed Size: " << stats.sBorrowedSize;
-            }
         }
 
         /*
@@ -116,8 +112,7 @@ namespace Priston
                 for (std::set<std::shared_ptr<Connection>>::iterator it = mBorrowed.begin();
                     it != mBorrowed.end(); ++it) 
                 {
-
-                    if ((*it).unique()) 
+                    if ((*it).unique() || (*it)->connectionState == ConnectionState::Connection_Query)
                     {
                         // This connection has been abandoned! Destroy it and create a new connection
                         try 
@@ -136,16 +131,11 @@ namespace Priston
                         }
                         catch (std::exception &e) 
                         {
-                            // Call this to prevent warnings
-                            std::string message = e.what();
-                            // Error creating a replacement connection
-                            throw ConnectionUnavailable();
+                            LOG_ERROR << "Failed in borrowing a connection!";
+                            assert(false);
                         }
                     }
                 }
-
-                // Nothing available
-                throw ConnectionUnavailable();
             }
 
             // Take one off the front
@@ -185,4 +175,4 @@ namespace Priston
     };
 }
 
-#endif /* !_PristonTale_Config_h_ */
+#endif /* !_Priston_Config_h_ */

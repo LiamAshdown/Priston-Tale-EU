@@ -16,8 +16,8 @@
 * along with this program.If not, see < http://www.gnu.org/licenses/>.
 */
 
-#ifndef _PristonTale_Database_h_
-#define _PristonTale_Database_h_
+#ifndef _Priston_Database_h_
+#define _Priston_Database_h_
 #include "../Common/SharedDefines.h"
 #include "cppconn/exception.h"
 #include "mysql_connection.h"
@@ -78,4 +78,4 @@ namespace Priston
 }
 #define sDatabase Priston::Database::instance()
 
-#endif /* !_PristonTale_Database_h_ */
+#endif /* !_Priston_Database_h_ */

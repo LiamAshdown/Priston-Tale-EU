@@ -19,8 +19,8 @@
 * along with this program.If not, see < http://www.gnu.org/licenses/>.
 */
 
-#ifndef _PristonTale_MYSQLConnection_h_
-#define _PristonTale_MYSQLConnection_h_
+#ifndef _Priston_MYSQLConnection_h_
+#define _Priston_MYSQLConnection_h_
 
 #include "Common/SharedDefines.h"
 #include "ConnectionPool.h"
@@ -91,4 +91,4 @@ namespace Priston
     };
 }
 
-#endif /* !_PristonTale_MYSQLConnection_h_ */
+#endif /* !_Priston_MYSQLConnection_h_ */

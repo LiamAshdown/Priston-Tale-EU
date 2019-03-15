@@ -16,8 +16,8 @@
 * along with this program.If not, see < http://www.gnu.org/licenses/>.
 */
 
-#ifndef _PristonTale_QueryDatabase_h_
-#define _PristonTale_QueryDatabase_h_
+#ifndef _Priston_QueryDatabase_h_
+#define _Priston_QueryDatabase_h_
 #include "../Common/SharedDefines.h"
 #include "Database.h"
 #include "Fields.h"
@@ -27,80 +27,42 @@ namespace Priston
     class QueryDatabase
     {
     public:
-        QueryDatabase(const std::string database)
-        {
-            mDatabase = database;
-            mConnection = sDatabase->GetDatabase(mDatabase)->GetConnectionPool()->Borrow();
-            mSqlConnection = mConnection->SQLConnection;
-        }
-        ~QueryDatabase()
-        {
-            IF_LOG(plog::debug)
-                LOG_DEBUG << "Destructor QueryDatabase called!";
-
-            sDatabase->GetDatabase(mDatabase)->GetConnectionPool()->UnBorrow(mConnection);
-        }
+       explicit QueryDatabase(const std::string database);
+        ~QueryDatabase();
 
     public:
-        void QueryExecute(const std::string& query)
-        {
-            try
-            {
-                std::shared_ptr<sql::Statement> statement = std::shared_ptr<sql::Statement>(mSqlConnection->createStatement());
-                mResultSet = std::shared_ptr<sql::ResultSet>(statement->executeQuery(query.c_str()));
-                mField.mResultSet = mResultSet;
-            }
-            catch (sql::SQLException &e)
-            {
-                sDatabase->PrintException(e, const_cast<char*>(__FILE__), const_cast<char*>(__FUNCTION__), __LINE__);
-            }
-        }
+        // Direct Execute
+        void DirectExecuteQuery(const std::string& query);
 
-        void PreparedStatementQuery(const std::string& query)
-        {
-            try
-            {
-                mPrepareStatement = std::shared_ptr<sql::PreparedStatement>(mSqlConnection->prepareStatement(query.c_str()));
-            }
-            catch (sql::SQLException &e)
-            {
-                sDatabase->PrintException(e, const_cast<char*>(__FILE__), const_cast<char*>(__FUNCTION__), __LINE__);
-            }
-        }
+        // Prepare Query
+        void PrepareQuery(const std::string& query);
+        void ExecuteQuery();
+        bool GetResult();
+        std::shared_ptr<sql::PreparedStatement>& GetStatement();
 
-        std::shared_ptr<sql::PreparedStatement>& GetStatement()
-        {
-            return mPrepareStatement;
-        }
+        // Neutral
+        void Release();
+        Field* Fetch();
 
-        void ExecuteQuery()
-        {
-            mResultSet = std::shared_ptr<sql::ResultSet>(mPrepareStatement->executeQuery());
-        }
-
-        bool RecordExists()
-        {
-            if (mResultSet->next())
-            {
-                mField.mResultSet = mResultSet;
-                return true;
-            }
-            return false;
-        }
-
-        Field* GetResult()
-        {
-            return &mField;
-        }
-
-    public:
+    private:
+        // Database
         std::string mDatabase;
-        std::shared_ptr<sql::ResultSet> mResultSet;
         std::shared_ptr<MySQLConnection> mConnection;
         std::shared_ptr<sql::Connection> mSqlConnection;
-        std::shared_ptr<sql::PreparedStatement> mPrepareStatement;
+
+        // Direct Execute
+        std::shared_ptr<sql::Statement> mStatement;
+
+        // Prepare Query
+        std::shared_ptr<sql::PreparedStatement> mPreparedStatement;
+
+        // Neutral
+        bool mExecuteResult;
+        bool mIsExecuteResult;
+        bool mHasReleased;
+        std::unique_ptr<sql::ResultSet> mResultSet;
         Field mField;
     }; 
 }
 
-#endif /* !_PristonTale_QueryDatabase_h_ */
+#endif /* !_Priston_QueryDatabase_h_ */

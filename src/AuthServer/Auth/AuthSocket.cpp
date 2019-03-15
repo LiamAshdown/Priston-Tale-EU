@@ -27,8 +27,6 @@ namespace Priston
     AuthSocket::AuthSocket(boost::asio::io_service& service, std::function<void(Socket*)> closeHandler) :
         Socket(service, std::move(closeHandler))
     {
-        IF_LOG(plog::debug)
-            sDatabase->GetDatabase("auth")->GetConnectionPool()->GetStats();
     }
     //-----------------------------------------------//
     AuthSocket::~AuthSocket()
@@ -96,12 +94,12 @@ namespace Priston
 
         // Query Auth account database
         QueryDatabase database("auth");
-        database.PreparedStatementQuery("SELECT * FROM account WHERE username = ?");
+        database.PrepareQuery("SELECT * FROM account WHERE username = ?");
         database.GetStatement()->setString(1, static_cast<std::string>(packetUser->sUserID).c_str());
         database.ExecuteQuery();
 
         // If username doesn't exist in database
-        if (!database.RecordExists())
+        if (!database.GetResult())
         {
             PacketAccountLoginCode accountLogin;
             accountLogin.sLength = sizeof(accountLogin);
@@ -115,7 +113,7 @@ namespace Priston
             return;
         }
 
-        Field* fields = database.GetResult();
+        Field* fields = database.Fetch();
         std::string hashedPassword = fields->GetString(3);
 
         // If our hashed password does not match the same in the database, then send incorrect password packet
@@ -155,10 +153,11 @@ namespace Priston
     //-----------------------------------------------//
     void AuthSocket::HandlePing(const Packet* packet)
     {
-        PacketPing* packetPing = (PacketPing*)packet;
-        packetPing->sTick = GetTickCount();
+        if (((PacketPing*)packet)->sLength != sizeof(PacketPing))
+            return;
 
-        SendPacket((uint8*)(Packet*)&packetPing, packetPing->sLength);
+        ((PacketPing*)packet)->sTick = GetTickCount();
+        SendPacket((uint8*)packet, packet->sLength);
     }
     //-----------------------------------------------//
 }

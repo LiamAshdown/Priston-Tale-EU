@@ -36,7 +36,6 @@ namespace Priston
     void Opcodes::InitializePackets()
     {
         ///< CMSG
-
         StorePacket(PacketsHeader::CMSG_LOGIN_USER,         "CMSG_LOGIN_USER",                      &AuthSocket::HandleLoginUser        );
         StorePacket(PacketsHeader::CMSG_SAVE_DATA,          "CMSG_SAVE_DATA",                       &AuthSocket::HandleNULL             );
         StorePacket(PacketsHeader::CMSG_SELECT_CHARACTER,   "CMSG_SELECT_CHARACTER",                &AuthSocket::HandleNULL             );
