@@ -39,7 +39,7 @@ namespace Priston
     {
         if (const Packet* packet = DecryptPacket())
         {
-            LOG_INFO << "RECIEVED PACKET: " << packet->sHeader;
+            LOG_INFO << "Recieved Packet " << sOpcode->GetClientPacketName(packet->sHeader) << " " << packet->sHeader;
 
             ExecutePacket(sOpcode->GetClientPacket(packet->sHeader), packet);
             return true;
@@ -185,7 +185,6 @@ namespace Priston
         if (!database.GetResult())
             return;
 
-        // We already check whether we have a realm or not when we first boot up the server
         fields = database.Fetch();
 
         PacketServerList serverList;
