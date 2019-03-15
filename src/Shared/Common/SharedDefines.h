@@ -18,6 +18,7 @@
 
 #ifndef _Priston_SharedDefines_h_
 #define _Priston_SharedDefines_h_
+#include "Maths.h"
 #include "boost/date_time/posix_time/posix_time.hpp"
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
@@ -56,6 +57,8 @@ typedef std::uint16_t uint16;
 typedef std::uint8_t uint8;
 
 typedef std::vector<std::string> Tokens;
+
+long int GetUnixTimeStamp();
 
 #define DEFAULT_AUTH_PORT 10009
 #define DEFAULT_WORLD_PORT 10010

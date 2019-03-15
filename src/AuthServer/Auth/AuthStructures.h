@@ -127,7 +127,7 @@ typedef struct PacketPingStruct : Packet
     uint32	                                sTick;                     ///< GetTickCount
 }PacketPing;
 
-struct	_TRANS_CHAR_INFO
+typedef struct	TransCharInfoStruct
 {
     char	                                sName[32];				   ///< CHARACTER NAME
     char	                                sModelName[64];		       ///< MODEL NAME
@@ -140,12 +140,41 @@ struct	_TRANS_CHAR_INFO
     uint32		                            sPosX;                     ///< CHARACTER X LOCATION
     uint32		                            sPosZ;			           ///< CHARACTER Z LOCATION
     uint32	                                sTemp[13];		           ///< UNKNOWN
-};
+}TransCharInfo;
 
-struct	PacketUserInfo : Packet
+typedef struct PacketVersionStruct : Packet
 {
-    char									sUserID[32];                ///< USER ID
-    uint32									sCharCount;                 ///< CHARACTER COUNT
-    _TRANS_CHAR_INFO						sCharacterData[6];          ///< CHARACTER DATA
-};
+    bool									sServerFull;              ///< IS SERVER FULL? 
+    uint32								    sVersion;                 ///< VERSION EXPECTED
+    uint32								    sUnk2;                    ///< UNKNOWN - NOT USED?
+}PacketVersion;
 
+typedef struct	PacketUserInfoStruct : Packet
+{
+    char									sUserID[32];              ///< ACCOUNT NAME
+    uint32								    sCharCount;               ///< NUMBER OF CHARACTERS
+    TransCharInfo						    sCharacterData[6];        ///< CHARACTER DATA
+}PacketUserInfo;
+
+typedef struct PacketServerListStruct : Packet
+{
+    struct Header
+    {
+        char				                sServerName[16];
+        uint32				                sTime;
+        uint32					            sTicket;
+        uint32				                sUnknown;
+        uint32					            sClanServerIndex;
+        uint32					            sGameServers;
+    };
+
+    struct Server
+    {
+        char				                sName[32];
+        char				                sIP[3][20];
+        uint32					            sPort[4];
+    };
+
+    Header					                sHeaderStruct;
+    Server					                sServersStruct[4];
+}PacketServerList;

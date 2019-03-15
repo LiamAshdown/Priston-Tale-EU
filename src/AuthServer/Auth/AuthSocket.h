@@ -20,6 +20,7 @@
 #define _PristonTale_AuthSocket_h_
 #include "Network/Socket.h"
 #include "Opcodes.h"
+#include "Database/QueryDatabase.h"
 
 namespace Priston
 {
@@ -41,10 +42,15 @@ namespace Priston
 
     private:
         virtual bool ProcessIncomingData() override;
+        virtual void SendVersionCheck() override;
 
     private:
         void SendPacket(const uint8* packet, const uint16& length);
-        Packet* DecryptPacket();
+        const Packet* DecryptPacket();
+
+    private:
+        void SendUserSuccess(Field* fields);
+        Field* mFields;
     };
 }
 

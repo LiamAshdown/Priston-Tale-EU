@@ -23,6 +23,24 @@
 
 namespace Priston
 {
+    // Is there a better way of doing this?
+    class GlobalConnections
+    {
+    public:
+        static GlobalConnections* instance()
+        {
+            static GlobalConnections instance;
+            return &instance;
+        }
+
+    public:
+        GlobalConnections() : CurrentConnections(0) {}
+        ~GlobalConnections() {}
+
+    public:
+        int32 CurrentConnections;
+    };
+
     template <typename SocketType>
     class Listener
     {
@@ -109,6 +127,7 @@ namespace Priston
         else
             socket->Open();
 
+        Priston::GlobalConnections::instance()->CurrentConnections++;
         BeginAccept();
     }
 }

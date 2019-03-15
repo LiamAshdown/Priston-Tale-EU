@@ -40,6 +40,8 @@ namespace Priston
         mOutBuffer.reset(new PacketBuffer);
         mInBuffer.reset(new PacketBuffer);
 
+        SendVersionCheck();
+
         StartAsyncRead();
 
         return true;

@@ -98,6 +98,7 @@ namespace Priston
 
     protected:
         virtual bool ProcessIncomingData() = 0;
+        virtual void SendVersionCheck() = 0;
 
         const uint8* InPeak() const;
         void ForceFlushOut();

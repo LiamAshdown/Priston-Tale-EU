@@ -1,7 +1,7 @@
 ###############################################
-# Priston Tale Auth Server configuration file #
+# QuadEmulator Server configuration file #
 ###############################################
-[authserver]
+[server]
 
 ###################################################################################################
 # SECTION INDEX
@@ -28,15 +28,14 @@
 ###################################################################################################
 
 ###################################################################################################
-# AUTH SERVER SETTINGS
+# SERVER SETTINGS
 #
-#    AuthServerPort
+#    ServerPort
 #        Description: TCP port to reach the auth server.
 #        Default:     10009
 
-AuthServerPort = 10009
+ServerPort = 10009
 
-#
 #
 #    BindIP
 #        Description: Bind auth server to IP/hostname
@@ -45,12 +44,25 @@ AuthServerPort = 10009
 BindIP = "127.0.0.1"
 
 #
-#
 #    NetworkThreadProcessors
 #        Description: Amount of worker threads to launch NetworkThreadProcessors
 #        Default:     1
 
 NetworkThreadProcessors = 1
+
+#
+#    MaximumConnections
+#        Description: Maximum connections server can accept before shows 'Server is full' error
+#        Default:     1000
+
+MaximumConnections = 1000
+
+#
+#    ClientVersion
+#        Description: Client version which the server is expecting
+#        Default:     1048
+
+ClientVersion = 1048
 
 #
 ###################################################################################################
@@ -64,9 +76,9 @@ NetworkThreadProcessors = 1
 #                     ".;somenumber;username;password;database" - (Use named pipes on Windows
 #                                                                 "enable-named-pipe" to [mysqld]
 #                                                                 section my.ini)
-#        Default:     "127.0.0.1;3306;priston;priston;auth"
+#        Default:     "127.0.0.1;3306;quad;quad;habbo"
 
-AuthDatabaseInfo = "127.0.0.1;3306;priston;priston;auth"
+AuthDatabaseInfo = "127.0.0.1;3306;quad;quad;habbo"
 
 #
 #    AuthDatabase.WorkerThreads

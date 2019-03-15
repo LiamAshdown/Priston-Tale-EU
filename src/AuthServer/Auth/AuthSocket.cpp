@@ -17,9 +17,9 @@
 */
 //-----------------------------------------------//
 #include "AuthSocket.h"
-#include "Database/QueryDatabase.h"
-#include "Database/Fields.h"
 #include "Common/SHA1.h"
+#include "Config/Config.h"
+#include "Network/Listener.h"
 //-----------------------------------------------//
 namespace Priston
 {
@@ -37,11 +37,11 @@ namespace Priston
     //-----------------------------------------------//
     bool AuthSocket::ProcessIncomingData()
     {
-        if (Packet* packet = DecryptPacket())
+        if (const Packet* packet = DecryptPacket())
         {
-            LOG_INFO << "Recieved " << sOpcode->GetOpCodeName(packet->sHeader) << " " << packet->sHeader;
+            LOG_INFO << "RECIEVED PACKET: " << packet->sHeader;
 
-            ExecutePacket(sOpcode->GetPacket(packet->sHeader), packet);
+            ExecutePacket(sOpcode->GetClientPacket(packet->sHeader), packet);
             return true;
         }
 
@@ -60,7 +60,7 @@ namespace Priston
         Write((const char*)&packetSending.sPacket, packetSending.sSize);
     }
     //-----------------------------------------------//
-    Packet* AuthSocket::DecryptPacket()
+    const Packet* AuthSocket::DecryptPacket()
     {
         PacketReceiving packetRecieving{};
         if (!Read((char*)packetRecieving.sPacket, ReadLengthRemaining()))
@@ -76,7 +76,7 @@ namespace Priston
     //-----------------------------------------------//
     void AuthSocket::HandleNULL(const Packet* packet)
     {
-        LOG_ERROR << sOpcode->GetOpCodeName(packet->sHeader) << " not currently handled!";
+        LOG_ERROR << sOpcode->GetClientPacketName(packet->sHeader) << " not currently handled!";
     }
     //-----------------------------------------------//
     void AuthSocket::HandleServerMessage(const Packet* packet)
@@ -94,7 +94,7 @@ namespace Priston
 
         // Query Auth account database
         QueryDatabase database("auth");
-        database.PrepareQuery("SELECT * FROM account WHERE username = ?");
+        database.PrepareQuery("SELECT id, user_name, sha_pass FROM account WHERE user_name = ?");
         database.GetStatement()->setString(1, static_cast<std::string>(packetUser->sUserID).c_str());
         database.ExecuteQuery();
 
@@ -103,7 +103,7 @@ namespace Priston
         {
             PacketAccountLoginCode accountLogin;
             accountLogin.sLength = sizeof(accountLogin);
-            accountLogin.sHeader = PacketsHeader::SMSG_ACCOUNT_LOGIN_CODE;
+            accountLogin.sHeader = ServerPacketHeader::SMSG_ACCOUNT_LOGIN_CODE;
             accountLogin.sReserved = 0;
             accountLogin.sCode = AccountLogin::ACCOUNTLOGIN_IncorrectName;
             accountLogin.sFailCode = 1;
@@ -122,7 +122,7 @@ namespace Priston
         {
             PacketAccountLoginCode accountLogin;
             accountLogin.sLength = sizeof(accountLogin);
-            accountLogin.sHeader = PacketsHeader::SMSG_ACCOUNT_LOGIN_CODE;
+            accountLogin.sHeader = ServerPacketHeader::SMSG_ACCOUNT_LOGIN_CODE;
             accountLogin.sReserved = 0;
             accountLogin.sCode = AccountLogin::ACCOUNTLOGIN_IncorrectPassword;
             accountLogin.sFailCode = 1;
@@ -134,30 +134,92 @@ namespace Priston
         }
 
         PacketChecksumFunctionList packetCheck;
-        packetCheck.sLength       = sizeof(PacketChecksumFunctionList);
-        packetCheck.sHeader       = PacketsHeader::SMSG_CHECK_SUM;
-        packetCheck.sKey          = CHECK_SUM_PACKET;
-        packetCheck.sEncKeyIndex  = 0;
-        packetCheck.sEncrypted    = 1;
-
+        packetCheck.sLength = sizeof(PacketChecksumFunctionList);
+        packetCheck.sHeader = ServerPacketHeader::SMSG_CHECK_SUM;
+        packetCheck.sKey = CHECK_SUM_PACKET;
+        packetCheck.sEncKeyIndex = 0;
+        packetCheck.sEncrypted = 1;
         SendPacket((uint8*)(Packet*)&packetCheck, packetCheck.sLength);
 
-        PacketWindowList packetWindow;
-        packetWindow.sLength      = sizeof(PacketWindowList);
-        packetWindow.sHeader      = PacketsHeader::SMSG_WINDOW_LIST;
-        packetWindow.sEncKeyIndex = 0;
-        packetWindow.sEncrypted   = 1;
-
-        SendPacket((uint8*)(Packet*)&packetWindow, packetWindow.sLength);
+        SendUserSuccess(fields);
     }
     //-----------------------------------------------//
     void AuthSocket::HandlePing(const Packet* packet)
     {
-        if (((PacketPing*)packet)->sLength != sizeof(PacketPing))
+        if (((PacketPing*)&packet)->sLength != sizeof(PacketPing))
             return;
 
-        ((PacketPing*)packet)->sTick = GetTickCount();
-        SendPacket((uint8*)packet, packet->sLength);
+        ((PacketPing*)&packet)->sTick = GetTickCount();
+        SendPacket((uint8*)&packet, packet->sLength);
+    }
+    //-----------------------------------------------//
+    void AuthSocket::SendVersionCheck()
+    {
+        // Send expected version to client
+        PacketVersion packetVersion;
+        packetVersion.sLength = sizeof(PacketVersion);
+        packetVersion.sHeader = ServerPacketHeader::SMSG_VERSION;
+        packetVersion.sServerFull = Priston::GlobalConnections::instance()->CurrentConnections >= sConfig->GetIntDefault("MaximumConnections", 1000) ? true : false;
+        packetVersion.sUnk2 = 0;
+        packetVersion.sEncKeyIndex = 0;
+        packetVersion.sEncrypted = 0;
+        packetVersion.sVersion = sConfig->GetIntDefault("ClientVersion", 1048);
+        SendPacket((uint8*)(Packet*)&packetVersion, packetVersion.sLength);
+    }
+    //-----------------------------------------------//
+    void AuthSocket::SendUserSuccess(Field* fields)
+    {
+        PacketUserInfo packetUser;
+        packetUser.sLength = sizeof(PacketUserInfo);
+        packetUser.sHeader = ServerPacketHeader::SMSG_USER_INFO;
+        strcpy(packetUser.sUserID, fields->GetString(2).c_str());
+        packetUser.sCharCount = 0; // TODO; code character data
+        packetUser.sEncKeyIndex = 0;
+        packetUser.sEncrypted = 1;
+        SendPacket((uint8*)(Packet*)&packetUser, packetUser.sLength);
+
+        QueryDatabase database("auth");
+        database.PrepareQuery("SELECT id, ip_address, port, server_name, realm_name FROM server_realms");
+        database.ExecuteQuery();
+
+        if (!database.GetResult())
+            return;
+
+        // We already check whether we have a realm or not when we first boot up the server
+        fields = database.Fetch();
+
+        PacketServerList serverList;
+        serverList.sLength = sizeof(Packet) + sizeof(PacketServerList::Header);
+        serverList.sHeader = ServerPacketHeader::SMSG_SERVER_LIST;
+        strcpy(serverList.sHeaderStruct.sServerName, fields->GetString(4).c_str());
+        serverList.sHeaderStruct.sTime = GetUnixTimeStamp();
+        serverList.sHeaderStruct.sTicket = Maths::GetRandomNumber(1, 1000);
+        serverList.sHeaderStruct.sUnknown = 0;
+        serverList.sHeaderStruct.sClanServerIndex = 0; // TOOD; What is this?
+        serverList.sHeaderStruct.sGameServers = fields->GetRowCount();
+
+        uint8 counter = 0;
+        do
+        {
+            // Client requires us to send this 3 times... original source does this aswell
+            strcpy(serverList.sServersStruct[counter].sName, fields->GetString(5).c_str());
+            strcpy(serverList.sServersStruct[counter].sIP[0], fields->GetString(2).c_str());
+            strcpy(serverList.sServersStruct[counter].sIP[1], fields->GetString(2).c_str());
+            strcpy(serverList.sServersStruct[counter].sIP[2], fields->GetString(2).c_str());
+
+            serverList.sServersStruct[counter].sPort[0] = 10010;
+            serverList.sServersStruct[counter].sPort[1] = 10010;
+            serverList.sServersStruct[counter].sPort[2] = 10010;
+            serverList.sServersStruct[counter].sPort[3] = 0;
+
+            counter++;
+        } while (fields->GetNextResult());
+
+        serverList.sLength += ((sizeof(PacketServerList::Server) * serverList.sHeaderStruct.sGameServers) + (sizeof(PacketServerList::Server) * (0)));
+        serverList.sEncKeyIndex = 0;
+        serverList.sEncrypted = 1;
+        SendPacket((uint8*)(Packet*)&serverList, serverList.sLength);
     }
     //-----------------------------------------------//
 }
+//-----------------------------------------------//

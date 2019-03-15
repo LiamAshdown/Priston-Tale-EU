@@ -20,7 +20,7 @@
 #include "Network/Listener.h"
 #include "Common/SharedDefines.h"
 #include "Config/Config.h"
-#include "Database/Database.h"
+#include "Database/QueryDatabase.h"
 //-----------------------------------------------//
 bool StartUpDataBase();
 //-----------------------------------------------//
@@ -47,7 +47,6 @@ int main()
     }
 
     sOpcode->InitializePackets();
-    LOG_INFO << "Opcodes sucessfully loaded!";
 
     Priston::Listener<Priston::AuthSocket> listener(sConfig->GetStringDefault("BindIP", "127.0.0.1"), sConfig->GetIntDefault("AuthServerPort", DEFAULT_AUTH_PORT), 
         sConfig->GetIntDefault("NetworkThreadProcessors", 1));
@@ -78,8 +77,18 @@ bool StartUpDataBase()
     }
     else
     {
-        LOG_INFO << "Successfully connected to MYSQL...";
-        LOG_INFO << "MYSQL Worker Threads: " << sConfig->GetIntDefault("AuthDatabase.WorkerThreads", 1);
+        LOG_INFO << "Successfully connected to " << dbstring << " database";
+
+        // Check if we have a realm
+        Priston::QueryDatabase database("auth");
+        database.PrepareQuery("SELECT id, ip_address, port, server_name, realm_name FROM server_realms");
+        database.ExecuteQuery();
+
+        if (!database.GetResult())
+        {
+            LOG_ERROR << "server_realms is empty...";
+            return false;
+        }
     }
 
     return true;

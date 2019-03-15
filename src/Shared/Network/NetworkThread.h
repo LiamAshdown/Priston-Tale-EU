@@ -37,9 +37,6 @@ namespace Priston
             // Allow io_service::run() to exit.
             mWork.reset();
 
-            IF_LOG(plog::debug)
-                LOG_DEBUG << "Destructor NetworkThread called!";
-
             // Attempt to gracefully close any open connections
             for (auto i = mSockets.begin(); i != mSockets.end();)
             {
@@ -60,6 +57,15 @@ namespace Priston
         {
             std::lock_guard<std::mutex> guard(mSocketLock);
             mSockets.erase(socket->Shared<SocketType>());
+
+            if (Priston::GlobalConnections::instance()->CurrentConnections == 0)
+                Priston::GlobalConnections::instance()->CurrentConnections = 0;
+            else
+                Priston::GlobalConnections::instance()->CurrentConnections--;
+
+            // If for some reason CurrentConnections variable returns an overflow, then
+            // quit server
+            assert(sGlobalConnections->CurrentConnections != std::numeric_limits<uint32_t>::max());
         }
 
     private:

@@ -32,9 +32,9 @@
 struct PacketReceiving
 {
     PacketReceiving() : sInUse(0), sDelete(0) {}
-    bool		  sInUse;                                                   ///< USE PACKET
-    bool		  sDelete;                                                  ///< DELETE PACKET?
-    uint8		  sPacket[8192];                                            ///< PACKET
+    bool		                            sInUse;                         ///< USE PACKET
+    bool		                            sDelete;                        ///< DELETE PACKET?
+    uint8		                            sPacket[8192];                  ///< PACKET
 };
 
 typedef struct PacketStruct
