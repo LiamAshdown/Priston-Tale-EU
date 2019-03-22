@@ -16,39 +16,48 @@
 * along with this program.If not, see < http://www.gnu.org/licenses/>.
 */
 
-#ifndef _Priston_Database_h_
-#define _Priston_Database_h_
+#ifndef _PristonTale_Database_h_
+#define _PristonTale_Database_h_
 #include "../Common/SharedDefines.h"
 #include "cppconn/exception.h"
 #include "mysql_connection.h"
-#include "MYSQLConnection.h"
+#include "ConnectionPool.h"
+
+#include <mutex>
 
 namespace Priston
 {
+    class Database;
+
     typedef struct DatabaseStruct
     {
     public:
-        DatabaseStruct() : sConnectionFactory(nullptr), sPool(nullptr) {}
-        ~DatabaseStruct()
-        {
-            IF_LOG(plog::debug)
-                LOG_DEBUG << "Destructor DatabaseStruct called!";
-        }
+        friend class Database;
 
-        std::shared_ptr<ConnectionPool<MySQLConnection>> GetConnectionPool()
-        {
-            return sPool;
-        }
+    public:
+        DatabaseStruct() {}
+        ~DatabaseStruct() {}
 
-        std::shared_ptr<MySQLConnectionFactory> sConnectionFactory;
-        std::shared_ptr<ConnectionPool<MySQLConnection>> sPool;
+    public:
+        std::shared_ptr<MySQLConnection> GetMySQLConnection() { return mMySQLConnection; }
+        std::shared_ptr<ConnectionPool> GetConnectionPool() {return mPool; }
+        std::string GetName() const { return mUsername; }
+        std::string GetPassword() const { return mPassword; }
+        std::string GetPort() const { return mPort; }
+        std::string GetHost() const { return mHost; }
+        std::string GetDatabase() const { return mDatabaseName; }
+        uint32 GetPoolSize() const { return mPoolSize; }
 
-        std::string sUsername;
-        std::string sPassword;
-        std::string sPort;
-        std::string sHost;
-        std::string sDatabaseName;
-        uint32 sPoolSize;
+    private:
+        std::shared_ptr<MySQLConnection> mMySQLConnection;
+        std::shared_ptr<ConnectionPool> mPool;
+
+        std::string mUsername;
+        std::string mPassword;
+        std::string mPort;
+        std::string mHost;
+        std::string mDatabaseName;
+        uint32 mPoolSize;
 
     }DatabaseHolder;
 
@@ -64,18 +73,16 @@ namespace Priston
         ~Database();
 
     public:
-        bool InitializeConnectionPool(const char* infoString, const uint32 poolSize);
-        void PrintException(sql::SQLException &e, char* file, char* function, uint32 line);
+        bool CreateDatabase(const char* infoString, const uint32& poolSize);
+        void PrintException(sql::SQLException &e, char* file, char* function, const uint32 line);
 
         std::shared_ptr<DatabaseHolder> GetDatabase(const std::string& database);
-
-    protected:
-        void RemoveDatabase(const std::string& database);
 
     private:
         DatabaseMap mDatabaseCont;
     };
 }
+
 #define sDatabase Priston::Database::instance()
 
-#endif /* !_Priston_Database_h_ */
+#endif /* !_PristonTale_Database_h_ */
