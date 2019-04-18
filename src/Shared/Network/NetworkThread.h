@@ -1,5 +1,5 @@
 /*
-* Priston Tale EU
+* Liam Ashdown
 * Copyright (C) 2019
 *
 * This program is free software: you can redistribute it and/or modify
@@ -16,12 +16,13 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _PristonTale_NetWorkThread_h_
-#define _PristonTale_NetWorkThread_h_
+#ifndef _NETWORK_NETWORK_THREAD_h
+#define _NETWORK_NETWORK_THREAD_h
 #include "../Common/SharedDefines.h"
 #include "Socket.h"
+#endif /* !_NETWORK_NETWORK_THREAD_h */
 
-namespace Priston
+namespace SteerStone
 {
     template <typename SocketType>
     class NetworkThread
@@ -44,7 +45,7 @@ namespace Priston
                 ++i;
 
                 if (!(*current)->IsClosed())
-                    (*current)->Close();
+                    (*current)->CloseSocket();
             }
         }
 
@@ -55,23 +56,14 @@ namespace Priston
 
         void RemoveSocket(Socket *socket)
         {
-            std::lock_guard<std::mutex> guard(mSocketLock);
+            std::lock_guard<std::mutex> guard(m_Mutex);
             mSockets.erase(socket->Shared<SocketType>());
-
-            if (Priston::GlobalConnections::instance()->CurrentConnections == 0)
-                Priston::GlobalConnections::instance()->CurrentConnections = 0;
-            else
-                Priston::GlobalConnections::instance()->CurrentConnections--;
-
-            // If for some reason CurrentConnections variable returns an overflow, then
-            // quit server
-            assert(sGlobalConnections->CurrentConnections != std::numeric_limits<uint32_t>::max());
         }
 
     private:
         boost::asio::io_service mService;
 
-        std::mutex mSocketLock;
+        std::mutex m_Mutex;
         std::unordered_set<std::shared_ptr<SocketType>> mSockets;
 
         // Note that the work member *must* be declared after the service member for the work constructor to function correctly
@@ -83,7 +75,7 @@ namespace Priston
     template <typename SocketType>
     std::shared_ptr<SocketType> NetworkThread<SocketType>::CreateSocket()
     {
-        std::lock_guard<std::mutex> guard(mSocketLock);
+        std::lock_guard<std::mutex> guard(m_Mutex);
 
         auto const i = mSockets.emplace(std::make_shared<SocketType>(mService, [this] (Socket *socket) { this->RemoveSocket(socket); }));
 
@@ -92,5 +84,3 @@ namespace Priston
         return *i.first;
     }
 }
-
-#endif /* !_PristonTale_NetWorkThread_h_ */

@@ -1,5 +1,5 @@
 /*
-* Priston Tale EU
+* Liam Ashdown
 * Copyright (C) 2019
 *
 * This program is free software: you can redistribute it and/or modify
@@ -16,15 +16,42 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _Priston_Maths_h_
-#define _Priston_Maths_h_
-#endif /* _Priston_Maths_h_ */
+#ifndef _COMMON_MATHS_h
+#define _COMMON_MATHS_h
+#include "SharedDefines.h"
+#include <random>
+#include <ctime>
+#endif /* _COMMON_MATHS_h */
 
-namespace Priston
+namespace SteerStone
 {
     namespace Maths
     {
-        /* Return true if a random roll fits in the specified chance (range 0-100). */
-        int GetRandomNumber(int min, int max);
-    }
-}
+        /// GetRandomNumber
+        /// Return a random number in specified range
+        uint32 GetRandomUint32(uint32 const p_Min, uint32 const p_Max);
+
+        /// CalculateWalkDirection
+        /// @p_CurrentX - Current X axis
+        /// @p_CurrentY - Current Y axis
+        /// @p_NextX - X axis on new position
+        /// @p_NextY - Y axis on new position
+        int16 CalculateWalkDirection(int16 const p_CurrentX, int16 const p_CurrentY, int16 const p_NextX, int16 const p_NextY);
+
+        /// CalculateHumanDirection
+        /// @p_CurrentX - Current X axis
+        /// @p_CurrentY - Current Y axis
+        /// @p_LookToX - Look To X axis     
+        /// @p_LookToY - Look To Y axis
+        int16 CalculateHumanDirection(int16 const m_CurrentX, int16 const m_CurrentY, int16 const p_LookToX, int16 const p_LookToY);
+
+        /// CalculateHeadRotation
+        /// @p_Rotation - Current Rotation
+        /// @p_CurrentX - Current X axis
+        /// @p_CurrentY - Current Y axis
+        /// @p_LookToX - Look To X axis
+        /// @p_LookToY - Look To Y axis
+        int16 CalculateHeadRotation(int16 const p_Rotation, int16 const m_CurrentX, int16 const m_CurrentY, int16 const p_LookToX, int16 const p_LookToY);
+
+    } ///< NAMESPACE MATHS
+} ///< NAMESPACE STEERSTONE

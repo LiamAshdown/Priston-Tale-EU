@@ -1,5 +1,5 @@
 /*
-* Priston Tale EU
+* Liam Ashdown
 * Copyright (C) 2019
 *
 * This program is free software: you can redistribute it and/or modify
@@ -16,36 +16,19 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _PristonTale_Listener_h_
-#define _PristonTale_Listener_h_
+#ifndef _NETWORK_LISTENER_h
+#define _NETWORK_LISTENER_h
 #include "../Common/SharedDefines.h"
 #include "NetworkThread.h"
+#endif /* _NETWORK_LISTENER_h */
 
-namespace Priston
+namespace SteerStone
 {
-    // Is there a better way of doing this?
-    class GlobalConnections
-    {
-    public:
-        static GlobalConnections* instance()
-        {
-            static GlobalConnections instance;
-            return &instance;
-        }
-
-    public:
-        GlobalConnections() : CurrentConnections(0) {}
-        ~GlobalConnections() {}
-
-    public:
-        int32 CurrentConnections;
-    };
-
     template <typename SocketType>
     class Listener
     {
     public:
-        Listener(std::string const& address, uint32 port, uint8 workerThreads);
+        Listener(std::string const& address, const uint16& port, uint8 workerThreads);
         ~Listener();
 
     private:
@@ -77,11 +60,12 @@ namespace Priston
 
         std::thread mAcceptorThread;
         std::vector<std::unique_ptr<NetworkThread<SocketType>>> mWorkerThreads;
+        uint16 mPort;
     };
 
     template <typename SocketType>
-    Listener<SocketType>::Listener(std::string const& address, uint32 port, uint8 workerThreads)
-        : mService(new boost::asio::io_service()), mAcceptor(new boost::asio::ip::tcp::acceptor(*mService, boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string(address), port)))
+    Listener<SocketType>::Listener(std::string const& address, const uint16& port, uint8 workerThreads)
+        : mService(new boost::asio::io_service()), mAcceptor(new boost::asio::ip::tcp::acceptor(*mService, boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string(address), port))), mPort(port)
     {
         mWorkerThreads.reserve(workerThreads);
         for (auto i = 0; i < workerThreads; ++i)
@@ -95,9 +79,6 @@ namespace Priston
     template <typename SocketType>
     Listener<SocketType>::~Listener()
     {
-        IF_LOG(plog::debug)
-            LOG_DEBUG << "Destructor SocketType called!";
-
         mAcceptor->close();
         mService->stop();
         mAcceptorThread.join();
@@ -125,11 +106,8 @@ namespace Priston
         if (ec)
             worker->RemoveSocket(socket.get());
         else
-            socket->Open();
+            socket->Open(mPort);
 
-        Priston::GlobalConnections::instance()->CurrentConnections++;
         BeginAccept();
     }
 }
-
-#endif /* !_PristonTale_Listener_h_ */

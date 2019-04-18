@@ -1,4 +1,4 @@
-#* Priston Tale EU
+#* Liam Ashdown
 #* Copyright (C) 2019
 #*
 #* This program is free software: you can redistribute it and/or modify
@@ -19,10 +19,12 @@ set(LIBRARY_NAME shared)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Common)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Network)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Config)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Platform)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Database)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Network)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Platform)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Platform/Thread)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/spdlog)
 include_directories(${CMAKE_SOURCE_DIR}/dep/mysql/include)
 include_directories(SYSTEM ${OPENSSL_INCLUDE_DIR})
 

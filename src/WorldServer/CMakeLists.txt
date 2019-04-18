@@ -19,6 +19,8 @@ set(EXECUTABLE_NAME WorldServer)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Server)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Server/Opcode)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Server/Handlers)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/World)
 include_directories(${CMAKE_SOURCE_DIR}/src/Shared)
 include_directories(${CMAKE_SOURCE_DIR}/dep/mysql/include)
 

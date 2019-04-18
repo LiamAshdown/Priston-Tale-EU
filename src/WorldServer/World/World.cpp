@@ -15,30 +15,29 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#ifndef _PristonTale_WorldSocket_h_
-#define _PristonTale_WorldSocket_h_
-#include "Network/Socket.h"
-#include "Session.h"
-#include "Opcodes.h"
-
+//-----------------------------------------------//
+#include "World.h"
+#include "Database/QueryDatabase.h"
+#include "Config/Config.h"
+//-----------------------------------------------//
 namespace Priston
 {
-    class WorldSocket : public Socket
+    //-----------------------------------------------//
+    World* World::instance()
     {
-    public:
-        WorldSocket(boost::asio::io_service& service, std::function<void(Socket*)> closeHandler);
-        ~WorldSocket();
-
-    private:
-        virtual bool ProcessIncomingData() override;
-        virtual void SendVersionCheck() override;
-
-    private:
-        void HandlePing(const Packet* packet);
-        void SendPacket(const uint8* packet, const uint16& length);
-        const Packet* DecryptPacket();
-    };
+        static World instance;
+        return &instance;
+    }
+    //-----------------------------------------------//
+    World::World()
+    {
+    }
+    //-----------------------------------------------//
+    World::~World()
+    {
+        IF_LOG(plog::debug)
+            LOG_DEBUG << "Destructor World called!";
+    }
+    //-----------------------------------------------//
 }
-
-#endif /* _PristonTale_WorldSocket_h_ */
+//-----------------------------------------------//

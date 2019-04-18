@@ -104,77 +104,77 @@ typedef struct PacketSendingStruct
 
 typedef struct ChecksumFunctionStruct
 {
-    uint32								    sSize;                      ///< SIZE
-    uint32								    sAddress;                   ///< ADDRRESS?
-    uint32									sCheckSum;                  ///< UNKNOWN
+    uint32								    sSize;                          ///< SIZE
+    uint32								    sAddress;                       ///< ADDRRESS?
+    uint32									sCheckSum;                      ///< UNKNOWN
 }ChecksumFunction;
 
 typedef struct PacketChecksumFunctionListStructs : Packet
 {
-    uint8									sKey;                       ///< KEY ENCRYPTION?
-    ChecksumFunction					    sCheckSum[400];             ///< UNKNOWN
+    uint8									sKey;                           ///< KEY ENCRYPTION?
+    ChecksumFunction					    sCheckSum[400];                 ///< UNKNOWN
 }PacketChecksumFunctionList;
 
 typedef struct PacketWindowListStruct : Packet
 {
-    int									    sCount;                     ///< NOT USED
-    char									sWindowName[50][64];        ///< CLIENT WINDOW NAME 
+    int									    sCount;                         ///< NOT USED
+    char									sWindowName[50][64];            ///< CLIENT WINDOW NAME 
 }PacketWindowList;
 
 typedef struct PacketPingStruct : Packet
 {
-    uint32	                                sTime;                     ///< TIME SINCE TICK
-    uint32	                                sTick;                     ///< GetTickCount
+    uint32	                                sTime;                          ///< TIME SINCE TICK
+    uint32	                                sTick;                          ///< GetTickCount
 }PacketPing;
 
 typedef struct	TransCharInfoStruct
 {
-    char	                                sName[32];				   ///< CHARACTER NAME
-    char	                                sModelName[64];		       ///< MODEL NAME
-    char	                                sModelName2[64];		   ///< MODEL NAME 2
-    uint32	                                sJobCode;			       ///< JOB CODE
-    uint32		                            sLevel;					   ///< CHARACTER LEVEL
-    uint32	                                sBrood;					   ///< BROOD
-    uint32	                                sArmorCode;			       ///< ARMOR CODE
-    uint32		                            sStartField;			   /// BYTE FIELD?
-    uint32		                            sPosX;                     ///< CHARACTER X LOCATION
-    uint32		                            sPosZ;			           ///< CHARACTER Z LOCATION
-    uint32	                                sTemp[13];		           ///< UNKNOWN
+    char	                                sName[32];				        ///< CHARACTER NAME
+    char	                                sModelName[64];		            ///< MODEL NAME
+    char	                                sModelName2[64];		        ///< MODEL NAME 2
+    uint32	                                sJobCode;			            ///< JOB CODE
+    uint32		                            sLevel;					        ///< CHARACTER LEVEL
+    uint32	                                sBrood;					        ///< BROOD
+    uint32	                                sArmorCode;			            ///< ARMOR CODE
+    uint32		                            sStartResult;			        /// BYTE Result?
+    uint32		                            sPosX;                          ///< CHARACTER X LOCATION
+    uint32		                            sPosZ;			                ///< CHARACTER Z LOCATION
+    uint32	                                sTemp[13];		                ///< UNKNOWN
 }TransCharInfo;
 
 typedef struct PacketVersionStruct : Packet
 {
-    bool									sServerFull;              ///< IS SERVER FULL? 
-    uint32								    sVersion;                 ///< VERSION EXPECTED
-    uint32								    sUnk2;                    ///< UNKNOWN - NOT USED?
+    bool									sServerFull;                    ///< IS SERVER FULL? 
+    uint32								    sVersion;                       ///< VERSION EXPECTED
+    uint32								    sUnk2;                          ///< UNKNOWN - NOT USED?
 }PacketVersion;
 
 typedef struct	PacketUserInfoStruct : Packet
 {
-    char									sUserID[32];              ///< ACCOUNT NAME
-    uint32								    sCharCount;               ///< NUMBER OF CHARACTERS
-    TransCharInfo						    sCharacterData[6];        ///< CHARACTER DATA
+    char									sUserID[32];                    ///< ACCOUNT NAME
+    uint32								    sCharCount;                     ///< NUMBER OF CHARACTERS
+    TransCharInfo						    sCharacterData[6];              ///< CHARACTER DATA
 }PacketUserInfo;
 
 typedef struct PacketServerListStruct : Packet
 {
     struct Header
     {
-        char				                sServerName[16];
-        uint32				                sTime;
-        uint32					            sTicket;
-        uint32				                sUnknown;
-        uint32					            sClanServerIndex;
-        uint32					            sGameServers;
+        char				                sServerName[16];                ///< SERVER NAME
+        uint32				                sTime;                          ///< TIME IN UNIX
+        uint32					            sTicket;                        ///< TICKET ID - NOT SURE WHAT THIS IS
+        uint32				                sUnknown;                       ///< UNKNOWN    
+        uint32					            sClanServerIndex;               ///< CLAN SERVER - NOT SURE WHAT THIS IS
+        uint32					            sGameServers;                   ///< NUMBER OF SERVERS
     };
 
     struct Server
     {
-        char				                sName[32];
-        char				                sIP[3][20];
-        uint32					            sPort[4];
+        char				                sName[32];                      ///< NAME OF REALM
+        char				                sIP[3][20];                     ///< IP OF REALM
+        uint32					            sPort[4];                       ///< PORT OF REALM
     };
 
-    Header					                sHeaderStruct;
-    Server					                sServersStruct[4];
+    Header					                sHeaderStruct;                  ///< HEADER STRUCT
+    Server					                sServersStruct[4];              ///< SERVER STRUCT
 }PacketServerList;

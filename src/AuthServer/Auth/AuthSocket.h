@@ -49,8 +49,7 @@ namespace Priston
         const Packet* DecryptPacket();
 
     private:
-        void SendUserSuccess(Field* fields);
-        Field* mFields;
+        void SendUserSuccess(Result* Results);
     };
 }
 

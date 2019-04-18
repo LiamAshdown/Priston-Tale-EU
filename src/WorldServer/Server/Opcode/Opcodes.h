@@ -21,24 +21,16 @@
 #include "Common/SharedDefines.h"
 #include "WorldStructures.h"
 
-enum PacketsHeader
+enum ClientPacketHeader
 {
-    ///< CMSG
-    CMSG_SERVER_LIST                                = 0x484700C0,
-    CMSG_SAVE_DATA                                  = 0x48470081,
-	CMSG_SELECT_CHARACTER							= 0x48470082,
-	CMSG_USER_INFO									= 0x48470086,
-	CMSG_CREATE_CHARACTER							= 0x48470088,
-	CMSG_DELETE_CHARACTER							= 0x48470087,
-	CMSG_VERSION									= 0x4847008A,
-	CMSG_LOGIN_USER								    = 0x48480001,
     CMSG_PING                                       = 0x435A0007,
+    CMSG_CREATE_CHARACTER                           = 0x48470088,
+};
 
-    ///< SMSG
-    SMSG_ACCOUNT_LOGIN_CODE							= 0x48470023,
-    SMSG_CHECK_SUM                                  = 0x6A6A0006,
-    SMSG_WINDOW_LIST                                = 0x6A6A000E,
-
+enum ServerPacketHeader
+{
+    SMSG_VERSION                                    = 0x4847008A,
+    SMSG_PONG                                       = 0x435A0007,
 };
 
 namespace Priston
@@ -64,16 +56,21 @@ namespace Priston
 
     public:
         void InitializePackets();
-        OpcodeHandler const& GetPacket(const uint64& Id);
 
-        const char* GetOpCodeName(const uint64& Id);
+        OpcodeHandler const& GetClientPacket(const uint64& Id);
+        OpcodeHandler const& GetServerPacket(const uint64& Id);
+
+        const char* GetClientPacketName(const uint64& Id);
+        const char* GetServerPacketName(const uint64& Id);
 
     private:
-        void StorePacket(const uint64& opcode, char const* name, void (WorldSocket::*handler)(const Packet* packet));
+        void StoreClientPacket(const uint64& opcode, char const* name, void (WorldSocket::*handler)(const Packet* packet));
+        void StoreServerPacket(const uint64& opcode, char const* name, void (WorldSocket::*handler)(const Packet* packet));
 
     private:
         static OpcodeHandler const emptyHandler;
-        OpcodeMap mOpcode;
+        OpcodeMap mClientOpcode;
+        OpcodeMap mServerOpcode;
     };
 }
 

@@ -1,5 +1,5 @@
 /*
-* Priston Tale EU
+* Liam Ashdown
 * Copyright (C) 2019
 *
 * This program is free software: you can redistribute it and/or modify
@@ -16,11 +16,12 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _Priston_SHA1_h_
-#define _Priston_SHA1_h_
+#ifndef _COMMON_SHA1_h
+#define _COMMON_SHA1_h
 #include "SharedDefines.h"
 #include "openssl/sha.h"
-#endif /* _Priston_SHA1_h_ */
+#endif /* _COMMON_SHA1_h */
 
-std::string ByteArrayToHexStr(const uint8* bytes, uint32 arrayLen, bool reverse = false);
-std::string CalculateSHA1Hash(const std::string& content);
+/// Convert string into SHA1
+std::string ByteArrayToHexStr(uint8 const* p_Bytes, uint32 p_ArrayLen, bool p_Reverse = false);
+std::string CalculateSHA1Hash(std::string const& p_Content);

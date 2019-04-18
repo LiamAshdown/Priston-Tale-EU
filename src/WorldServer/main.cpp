@@ -47,7 +47,6 @@ int main()
     }
 
     sOpcode->InitializePackets();
-    LOG_INFO << "Opcodes sucessfully loaded!";
 
     Priston::Listener<Priston::WorldSocket> listener(sConfig->GetStringDefault("BindIP", "127.0.0.1"), sConfig->GetIntDefault("AuthServerPort", DEFAULT_WORLD_PORT), 
         sConfig->GetIntDefault("NetworkThreadProcessors", 1));
@@ -79,7 +78,6 @@ bool StartUpDataBase()
     else
     {
         LOG_INFO << "Successfully connected to MYSQL...";
-        LOG_INFO << "MYSQL Worker Threads: " << sConfig->GetIntDefault("WorldDatabase.WorkerThreads", 1);
     }
 
     return true;

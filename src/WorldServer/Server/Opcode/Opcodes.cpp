@@ -35,27 +35,58 @@ namespace Priston
     //-----------------------------------------------//
     void Opcodes::InitializePackets()
     {
+        ///< CMSG
+        StoreClientPacket(ClientPacketHeader::CMSG_PING,               "CMSG_LOGIN_USER",                      &WorldSocket::HandlePing            );  
+
+        ///< SMSG
+        StoreServerPacket(ServerPacketHeader::SMSG_PONG,               "SMSG_PONG",                            &WorldSocket::HandleServerMessage   );
+
+        LOG_INFO << "Loaded " << mClientOpcode.size() << " CMSG opcodes";
+        LOG_INFO << "Loaded " << mServerOpcode.size() << " SMSG opcodes";
     }
     //-----------------------------------------------//
-    void Opcodes::StorePacket(const uint64& opcode, char const * name, void(WorldSocket::* handler)(const Packet* packet))
+    void Opcodes::StoreClientPacket(const uint64& opcode, char const * name, void(WorldSocket::* handler)(const Packet* packet))
     {
-        OpcodeHandler& ref = mOpcode[opcode];
+        OpcodeHandler& ref = mClientOpcode[opcode];
         ref.name = name;
         ref.handler = handler;
     }
     //-----------------------------------------------//
-    OpcodeHandler const& Opcodes::GetPacket(const uint64& Id)
+    void Opcodes::StoreServerPacket(const uint64& opcode, char const * name, void(WorldSocket::* handler)(const Packet* packet))
     {
-        OpcodeMap::const_iterator itr = mOpcode.find(Id);
-        if (itr != mOpcode.end())
+        OpcodeHandler& ref = mServerOpcode[opcode];
+        ref.name = name;
+        ref.handler = handler;
+    }
+    //-----------------------------------------------//
+    OpcodeHandler const& Opcodes::GetClientPacket(const uint64& Id)
+    {
+        OpcodeMap::const_iterator itr = mClientOpcode.find(Id);
+        if (itr != mClientOpcode.end())
             return itr->second;
         return emptyHandler;
     }
     //-----------------------------------------------//
-    const char * Opcodes::GetOpCodeName(const uint64& Id)
+    const char * Opcodes::GetClientPacketName(const uint64& Id)
     {
-        OpcodeMap::const_iterator itr = mOpcode.find(Id);
-        if (itr != mOpcode.end())
+        OpcodeMap::const_iterator itr = mClientOpcode.find(Id);
+        if (itr != mClientOpcode.end())
+            return itr->second.name;
+        return "NULL";
+    }
+    //-----------------------------------------------//
+    OpcodeHandler const& Opcodes::GetServerPacket(const uint64& Id)
+    {
+        OpcodeMap::const_iterator itr = mClientOpcode.find(Id);
+        if (itr != mServerOpcode.end())
+            return itr->second;
+        return emptyHandler;
+    }
+    //-----------------------------------------------//
+    const char * Opcodes::GetServerPacketName(const uint64& Id)
+    {
+        OpcodeMap::const_iterator itr = mClientOpcode.find(Id);
+        if (itr != mServerOpcode.end())
             return itr->second.name;
         return "NULL";
     }

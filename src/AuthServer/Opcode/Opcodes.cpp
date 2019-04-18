@@ -37,10 +37,6 @@ namespace Priston
     {
         ///< CMSG
         StoreClientPacket(ClientPacketHeader::CMSG_LOGIN_USER,         "CMSG_LOGIN_USER",                      &AuthSocket::HandleLoginUser        );
-        StoreClientPacket(ClientPacketHeader::CMSG_SAVE_DATA,          "CMSG_SAVE_DATA",                       &AuthSocket::HandleNULL             );
-        StoreClientPacket(ClientPacketHeader::CMSG_SELECT_CHARACTER,   "CMSG_SELECT_CHARACTER",                &AuthSocket::HandleNULL             );
-        StoreClientPacket(ClientPacketHeader::CMSG_CREATE_CHARACTER,   "CMSG_CREATE_CHARACTER",                &AuthSocket::HandleNULL             );
-        StoreClientPacket(ClientPacketHeader::CMSG_DELETE_CHARACTER,   "CMSG_DELETE_CHARACTER",                &AuthSocket::HandleNULL             );
         StoreClientPacket(ClientPacketHeader::CMSG_VERSION,            "CMSG_VERSION",                         &AuthSocket::HandleNULL             );
         StoreClientPacket(ClientPacketHeader::CMSG_PING,               "CMSG_PING",                            &AuthSocket::HandlePing             );
 
@@ -49,7 +45,7 @@ namespace Priston
         StoreServerPacket(ServerPacketHeader::SMSG_CHECK_SUM,          "SMSG_CHECK_SUM",                       &AuthSocket::HandleServerMessage    );
         StoreServerPacket(ServerPacketHeader::SMSG_WINDOW_LIST,        "SMSG_WINDOW_LIST",                     &AuthSocket::HandleServerMessage    );
         StoreServerPacket(ServerPacketHeader::SMSG_VERSION,            "SMSG_VERSION",                         &AuthSocket::HandleServerMessage    );
-        StoreServerPacket(ServerPacketHeader::SMSG_PING,               "SMSG_PING",                            &AuthSocket::HandleServerMessage    );
+        StoreServerPacket(ServerPacketHeader::SMSG_PONG,               "SMSG_PONG",                            &AuthSocket::HandleServerMessage    );
         StoreServerPacket(ServerPacketHeader::SMSG_USER_INFO,          "SMSG_USER_INFO",                       &AuthSocket::HandleServerMessage    );
         StoreServerPacket(ServerPacketHeader::SMSG_SERVER_LIST,        "SMSG_USER_INFO",                       &AuthSocket::HandleServerMessage    );
 

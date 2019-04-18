@@ -16,29 +16,34 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _PristonTale_WorldSocket_h_
-#define _PristonTale_WorldSocket_h_
-#include "Network/Socket.h"
-#include "Session.h"
-#include "Opcodes.h"
+#ifndef _PristonTale_Session_h_
+#define _PristonTale_Session_h_
+#include "Common/SharedDefines.h"
+#include "Opcode/Opcodes.h"
+#include <mutex>
 
 namespace Priston
 {
-    class WorldSocket : public Socket
+    class WorldSocket;
+
+    class Session
     {
     public:
-        WorldSocket(boost::asio::io_service& service, std::function<void(Socket*)> closeHandler);
-        ~WorldSocket();
+        friend class WorldSocket;
+
+    public:
+        Session(WorldSocket* worldSocket);
+        ~Session();
 
     private:
-        virtual bool ProcessIncomingData() override;
-        virtual void SendVersionCheck() override;
+        void QueuePacket(std::unique_ptr<Packet> packet);
 
     private:
-        void HandlePing(const Packet* packet);
-        void SendPacket(const uint8* packet, const uint16& length);
-        const Packet* DecryptPacket();
+        std::shared_ptr<WorldSocket> mSocket;
+        std::mutex mMutex;
+
+        std::deque<std::unique_ptr<Packet>> mRecvQueue;
     };
 }
 
-#endif /* _PristonTale_WorldSocket_h_ */
+#endif /* _PristonTale_Session_h_ */

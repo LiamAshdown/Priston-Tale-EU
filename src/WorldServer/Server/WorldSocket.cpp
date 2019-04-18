@@ -18,8 +18,8 @@
 //-----------------------------------------------//
 #include "WorldSocket.h"
 #include "Database/QueryDatabase.h"
-#include "Database/Fields.h"
-#include "Common/SHA1.h"
+#include "Config/Config.h"
+#include "Network/Listener.h"
 //-----------------------------------------------//
 namespace Priston
 {
@@ -27,8 +27,6 @@ namespace Priston
     WorldSocket::WorldSocket(boost::asio::io_service& service, std::function<void(Socket*)> closeHandler) :
         Socket(service, std::move(closeHandler))
     {
-        IF_LOG(plog::debug)
-            sDatabase->GetDatabase("world")->GetConnectionPool()->GetStats();
     }
     //-----------------------------------------------//
     WorldSocket::~WorldSocket()
@@ -39,9 +37,18 @@ namespace Priston
     //-----------------------------------------------//
     bool WorldSocket::ProcessIncomingData()
     {
-        if (Packet* packet = DecryptPacket())
+        if (const Packet* packet = DecryptPacket())
         {
-            LOG_INFO << "Recieved " << sOpcode->GetOpCodeName(packet->sHeader) << " " << packet->sHeader;
+            LOG_INFO << "Recieved Packet " << sOpcode->GetClientPacketName(packet->sHeader) << " " << packet->sHeader;
+
+            switch (packet->sHeader)
+            {
+            case CMSG_PING:
+                HandlePing(packet);
+                break;
+            default:
+                break;
+            }
 
             return true;
         }
@@ -61,7 +68,7 @@ namespace Priston
         Write((const char*)&packetSending.sPacket, packetSending.sSize);
     }
     //-----------------------------------------------//
-    Packet* WorldSocket::DecryptPacket()
+    const Packet* WorldSocket::DecryptPacket()
     {
         PacketReceiving packetRecieving{};
         if (!Read((char*)packetRecieving.sPacket, ReadLengthRemaining()))
@@ -69,4 +76,28 @@ namespace Priston
 
         return (Packet*)&packetRecieving.sPacket;
     }
+    //-----------------------------------------------//
+    void WorldSocket::SendVersionCheck()
+    {
+        // Send expected version to client
+        PacketVersion packetVersion;
+        packetVersion.sLength = sizeof(PacketVersion);
+        packetVersion.sHeader = ServerPacketHeader::SMSG_VERSION;
+        packetVersion.sServerFull = Priston::GlobalConnections::instance()->CurrentConnections >= sConfig->GetIntDefault("MaximumConnections", 1000) ? true : false;
+        packetVersion.sUnk2 = 0;
+        packetVersion.sEncKeyIndex = 0;
+        packetVersion.sEncrypted = 0;
+        packetVersion.sVersion = sConfig->GetIntDefault("ClientVersion", 1048);
+        SendPacket((uint8*)(Packet*)&packetVersion, packetVersion.sLength);
+    }
+    //-----------------------------------------------//
+    void WorldSocket::HandlePing(const Packet* packet)
+    {
+        if (((PacketPing*)&packet)->sLength != sizeof(PacketPing))
+            return;
+
+        ((PacketPing*)&packet)->sTick = GetTickCount();
+        SendPacket((uint8*)&packet, packet->sLength);
+    }
 }
+//-----------------------------------------------//

@@ -69,18 +69,23 @@ namespace Priston
         return (Packet*)&packetRecieving.sPacket;
     }
     //-----------------------------------------------//
+    void AuthSocket::SendVersionCheck()
+    {
+        // Send expected version to client
+        PacketVersion packetVersion;
+        packetVersion.sLength = sizeof(PacketVersion);
+        packetVersion.sHeader = ServerPacketHeader::SMSG_VERSION;
+        packetVersion.sServerFull = Priston::GlobalConnections::instance()->CurrentConnections >= sConfig->GetIntDefault("MaximumConnections", 1000) ? true : false;
+        packetVersion.sUnk2 = 0;
+        packetVersion.sEncKeyIndex = 0;
+        packetVersion.sEncrypted = 0;
+        packetVersion.sVersion = sConfig->GetIntDefault("ClientVersion", 1048);
+        SendPacket((uint8*)(Packet*)&packetVersion, packetVersion.sLength);
+    }
+    //-----------------------------------------------//
     void AuthSocket::ExecutePacket(const OpcodeHandler& opHandler, const Packet* packet)
     {
         (this->*opHandler.handler)(packet);
-    }
-    //-----------------------------------------------//
-    void AuthSocket::HandleNULL(const Packet* packet)
-    {
-        LOG_ERROR << sOpcode->GetClientPacketName(packet->sHeader) << " not currently handled!";
-    }
-    //-----------------------------------------------//
-    void AuthSocket::HandleServerMessage(const Packet* packet)
-    {
     }
     //-----------------------------------------------//
                 ////////////////////////
@@ -113,8 +118,8 @@ namespace Priston
             return;
         }
 
-        Field* fields = database.Fetch();
-        std::string hashedPassword = fields->GetString(3);
+        Result* Results = database.Fetch();
+        std::string hashedPassword = Results->GetString(3);
 
         // If our hashed password does not match the same in the database, then send incorrect password packet
         if (CalculateSHA1Hash(boost::to_upper_copy<std::string>(static_cast<std::string>(packetUser->sUserID)
@@ -141,7 +146,7 @@ namespace Priston
         packetCheck.sEncrypted = 1;
         SendPacket((uint8*)(Packet*)&packetCheck, packetCheck.sLength);
 
-        SendUserSuccess(fields);
+        SendUserSuccess(Results);
     }
     //-----------------------------------------------//
     void AuthSocket::HandlePing(const Packet* packet)
@@ -153,26 +158,12 @@ namespace Priston
         SendPacket((uint8*)&packet, packet->sLength);
     }
     //-----------------------------------------------//
-    void AuthSocket::SendVersionCheck()
-    {
-        // Send expected version to client
-        PacketVersion packetVersion;
-        packetVersion.sLength = sizeof(PacketVersion);
-        packetVersion.sHeader = ServerPacketHeader::SMSG_VERSION;
-        packetVersion.sServerFull = Priston::GlobalConnections::instance()->CurrentConnections >= sConfig->GetIntDefault("MaximumConnections", 1000) ? true : false;
-        packetVersion.sUnk2 = 0;
-        packetVersion.sEncKeyIndex = 0;
-        packetVersion.sEncrypted = 0;
-        packetVersion.sVersion = sConfig->GetIntDefault("ClientVersion", 1048);
-        SendPacket((uint8*)(Packet*)&packetVersion, packetVersion.sLength);
-    }
-    //-----------------------------------------------//
-    void AuthSocket::SendUserSuccess(Field* fields)
+    void AuthSocket::SendUserSuccess(Result* Results)
     {
         PacketUserInfo packetUser;
         packetUser.sLength = sizeof(PacketUserInfo);
         packetUser.sHeader = ServerPacketHeader::SMSG_USER_INFO;
-        strcpy(packetUser.sUserID, fields->GetString(2).c_str());
+        strcpy(packetUser.sUserID, Results->GetString(2).c_str());
         packetUser.sCharCount = 0; // TODO; code character data
         packetUser.sEncKeyIndex = 0;
         packetUser.sEncrypted = 1;
@@ -185,26 +176,26 @@ namespace Priston
         if (!database.GetResult())
             return;
 
-        fields = database.Fetch();
+        Results = database.Fetch();
 
         PacketServerList serverList;
         serverList.sLength = sizeof(Packet) + sizeof(PacketServerList::Header);
         serverList.sHeader = ServerPacketHeader::SMSG_SERVER_LIST;
-        strcpy(serverList.sHeaderStruct.sServerName, fields->GetString(4).c_str());
+        strcpy(serverList.sHeaderStruct.sServerName, Results->GetString(4).c_str());
         serverList.sHeaderStruct.sTime = GetUnixTimeStamp();
         serverList.sHeaderStruct.sTicket = Maths::GetRandomNumber(1, 1000);
         serverList.sHeaderStruct.sUnknown = 0;
         serverList.sHeaderStruct.sClanServerIndex = 0; // TOOD; What is this?
-        serverList.sHeaderStruct.sGameServers = fields->GetRowCount();
+        serverList.sHeaderStruct.sGameServers = Results->GetRowCount();
 
         uint8 counter = 0;
         do
         {
             // Client requires us to send this 3 times... original source does this aswell
-            strcpy(serverList.sServersStruct[counter].sName, fields->GetString(5).c_str());
-            strcpy(serverList.sServersStruct[counter].sIP[0], fields->GetString(2).c_str());
-            strcpy(serverList.sServersStruct[counter].sIP[1], fields->GetString(2).c_str());
-            strcpy(serverList.sServersStruct[counter].sIP[2], fields->GetString(2).c_str());
+            strcpy(serverList.sServersStruct[counter].sName, Results->GetString(5).c_str());
+            strcpy(serverList.sServersStruct[counter].sIP[0], Results->GetString(2).c_str());
+            strcpy(serverList.sServersStruct[counter].sIP[1], Results->GetString(2).c_str());
+            strcpy(serverList.sServersStruct[counter].sIP[2], Results->GetString(2).c_str());
 
             serverList.sServersStruct[counter].sPort[0] = 10010;
             serverList.sServersStruct[counter].sPort[1] = 10010;
@@ -212,12 +203,21 @@ namespace Priston
             serverList.sServersStruct[counter].sPort[3] = 0;
 
             counter++;
-        } while (fields->GetNextResult());
+        } while (Results->GetNextResult());
 
         serverList.sLength += ((sizeof(PacketServerList::Server) * serverList.sHeaderStruct.sGameServers) + (sizeof(PacketServerList::Server) * (0)));
         serverList.sEncKeyIndex = 0;
         serverList.sEncrypted = 1;
         SendPacket((uint8*)(Packet*)&serverList, serverList.sLength);
+    }
+    void AuthSocket::HandleNULL(const Packet* packet)
+    {
+        LOG_ERROR << sOpcode->GetClientPacketName(packet->sHeader) << " not currently handled!";
+    }
+    //-----------------------------------------------//
+    void AuthSocket::HandleServerMessage(const Packet* packet)
+    {
+        // Should we put anything here?...
     }
     //-----------------------------------------------//
 }

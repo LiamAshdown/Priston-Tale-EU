@@ -1,5 +1,5 @@
 /*
-* Priston Tale EU
+* Liam Ashdown
 * Copyright (C) 2019
 *
 * This program is free software: you can redistribute it and/or modify
@@ -16,36 +16,33 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _Priston_SharedDefines_h_
-#define _Priston_SharedDefines_h_
-#include "Maths.h"
+#ifndef _COMMON_SHARED_DEFINES_h
+#define _COMMON_SHARED_DEFINES_h
 #include "boost/date_time/posix_time/posix_time.hpp"
+#include <boost/optional.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/multi_array.hpp>
 #include <unordered_map>
 #include <functional>
 #include <algorithm>
 #include <iostream>
 #include <ctype.h>
 #include <memory>
+#include <queue>
+#include <deque>
 #include <string>
 #include <vector>
 #include <set>
 #include <map>
+#include <numeric>
 #include <unordered_set>
-
+#include <unordered_map>
+#include <stdlib.h>
 #include "../Platform/CompilerDefs.h"   
 #include <plog/Log.h>
 #include <plog/Appenders/ColorConsoleAppender.h>
-#endif /* _Priston_SharedDefines_h_ */
-
-#if PLATFORM == PLATFORM_WINDOWS
-#  define WIN32_LEAN_AND_MEAN
-#  include <Windows.h>
-#  ifndef _WIN32_WINNT
-#    define _WIN32_WINNT 0x0603
-#  endif
-#  endif
+#endif /* _COMMON_SHARED_DEFINES_h */
 
 typedef std::int64_t int64;
 typedef std::int32_t int32;
@@ -57,8 +54,22 @@ typedef std::uint16_t uint16;
 typedef std::uint8_t uint8;
 
 typedef std::vector<std::string> Tokens;
+typedef boost::multi_array<int16, 2> StaticGridArray; ///< Used for pathfinding
 
-long int GetUnixTimeStamp();
+#define DEFAULT_SERVER_PORT 37120
+#define UPDATE_WORLD_TIMER 500
+#define PUBLIC_ROOM_OFFSET 1000
 
-#define DEFAULT_AUTH_PORT 10009
-#define DEFAULT_WORLD_PORT 10010
+/// Split String
+std::string SplitString(std::string const& p_StringData, std::string const& p_Tokenizer);
+Tokens StrSplit(std::string const& p_Src, std::string const& p_Seperator);
+
+/// Decode Habbo Packet
+int DecodeBase64(const std::string buffer);
+int DecodeWired(std::string buffer);
+std::string EncodeBase64(const uint32 value);
+std::string EncodeWired(int64 value);
+
+/// Misc
+std::string GetDate();
+uint16 ConvertEndian(uint16 value);
