@@ -22,7 +22,7 @@
 #include "Session.h"
 #include "Opcodes.h"
 
-namespace Priston
+namespace SteerStone
 {
     class WorldSocket : public Socket
     {

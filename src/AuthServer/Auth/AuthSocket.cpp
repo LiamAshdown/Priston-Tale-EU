@@ -15,210 +15,99 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-//-----------------------------------------------//
+
 #include "AuthSocket.h"
 #include "Common/SHA1.h"
 #include "Config/Config.h"
-#include "Network/Listener.h"
-//-----------------------------------------------//
-namespace Priston
+#include "Common/Timer.h"
+
+namespace SteerStone
 {
-    //-----------------------------------------------//
+    /// Constructor 
+    /// @p_Service : Boost Service
+    /// @p_CloseHandler : Close Handler Custom function
     AuthSocket::AuthSocket(boost::asio::io_service& service, std::function<void(Socket*)> closeHandler) :
         Socket(service, std::move(closeHandler))
     {
+        p_PingDiff = sTimer->GetServerTime();
     }
-    //-----------------------------------------------//
+    
+    /// Deconstructor
     AuthSocket::~AuthSocket()
     {
-        IF_LOG(plog::debug)
-            LOG_DEBUG << "Destructor AuthSocket called!";
     }
-    //-----------------------------------------------//
+    
+    /// ProcessIncomingData
+    /// Handle incoming data from client
     bool AuthSocket::ProcessIncomingData()
     {
-        if (const Packet* packet = DecryptPacket())
+        if (const Packet* l_Packet = DecryptPacket())
         {
-            LOG_INFO << "Recieved Packet " << sOpcode->GetClientPacketName(packet->sHeader) << " " << packet->sHeader;
+            LOG_INFO << "[INCOMING]: " << "[" << l_Packet->PacketHeader << "] [" << sOpcode->GetClientPacket(l_Packet->PacketHeader).name << "]";
 
-            ExecutePacket(sOpcode->GetClientPacket(packet->sHeader), packet);
+            ExecutePacket(sOpcode->GetClientPacket(l_Packet->PacketHeader), l_Packet);
             return true;
         }
-
         return false;
     }
-    //-----------------------------------------------//
-    void AuthSocket::SendPacket(const uint8* packet, const uint16& length)
+
+    /// SendVersionCheck
+    /// Send expection version to client
+    void AuthSocket::SendVersionCheck()
     {
-        // TODO; Optimize this code. We don't need to create a new struct.
-        //       We also need to add a LOG_INFO << Sent packet...
-        PacketSending packetSending;
-        packetSending.sSize = length;
-
-        memcpy(packetSending.sPacket, packet, length);
-
-        Write((const char*)&packetSending.sPacket, packetSending.sSize);
+        PacketVersion packetVersion;
+        packetVersion.Length       = sizeof(PacketVersion);
+        packetVersion.PacketHeader = ServerPacketHeader::SMSG_VERSION;
+        packetVersion.ServerFull   = 0; ///< TODO; Check if server full by database
+        packetVersion.Unk2         = 0;
+        packetVersion.EncKeyIndex  = 0;
+        packetVersion.Encrypted    = 0;
+        packetVersion.Version      = sConfig->GetIntDefault("ClientVersion", 1048);
+        SendPacket((uint8*)(Packet*)&packetVersion, packetVersion.Length);
     }
-    //-----------------------------------------------//
+    
+    /// SendPacket 
+    /// @p_Packet : Buffer which holds our data to be send to the client
+    /// @p_Length : Size of buffer
+    void AuthSocket::SendPacket(uint8* p_Packet, const uint16& p_Length)
+    {
+        PacketSending l_Packet;
+        l_Packet.Size = p_Length;
+
+        memcpy(l_Packet.Packet, p_Packet, p_Length);
+
+        Write((const char*)&l_Packet.Packet, l_Packet.Size);
+    }
+    
+    /// DecryptPacket
+    /// Decrypt incoming packet from client
     const Packet* AuthSocket::DecryptPacket()
     {
         PacketReceiving packetRecieving{};
-        if (!Read((char*)packetRecieving.sPacket, ReadLengthRemaining()))
+        if (!Read((char*)packetRecieving.Packet, ReadLengthRemaining()))
             return nullptr;
 
-        return (Packet*)&packetRecieving.sPacket;
+        return (Packet*)&packetRecieving.Packet;
     }
-    //-----------------------------------------------//
-    void AuthSocket::SendVersionCheck()
+   
+    /// ExecutePacket
+    /// @p_OpHandler : Function which will be called
+    /// @p_Packet : Packet we are passing to the function
+    void AuthSocket::ExecutePacket(const OpcodeHandler& p_OpHandler, const Packet* p_Packet)
     {
-        // Send expected version to client
-        PacketVersion packetVersion;
-        packetVersion.sLength = sizeof(PacketVersion);
-        packetVersion.sHeader = ServerPacketHeader::SMSG_VERSION;
-        packetVersion.sServerFull = Priston::GlobalConnections::instance()->CurrentConnections >= sConfig->GetIntDefault("MaximumConnections", 1000) ? true : false;
-        packetVersion.sUnk2 = 0;
-        packetVersion.sEncKeyIndex = 0;
-        packetVersion.sEncrypted = 0;
-        packetVersion.sVersion = sConfig->GetIntDefault("ClientVersion", 1048);
-        SendPacket((uint8*)(Packet*)&packetVersion, packetVersion.sLength);
+        (this->*p_OpHandler.handler)(p_Packet);
     }
-    //-----------------------------------------------//
-    void AuthSocket::ExecutePacket(const OpcodeHandler& opHandler, const Packet* packet)
+     
+    /// HandleServerMessage
+    /// Default Server handler
+    void AuthSocket::HandleServerMessage(const Packet* p_Packet)
     {
-        (this->*opHandler.handler)(packet);
     }
-    //-----------------------------------------------//
-                ////////////////////////
-                //      HANDLERS      //
-                ///////////////////////
-    //-----------------------------------------------//
-    void AuthSocket::HandleLoginUser(const Packet* packet)
+
+    /// HandleNULl
+    /// Default Handler if we have not handled the packet yet
+    /// @p_Packet : Packet sent by client
+    void AuthSocket::HandleNULL(const Packet* p_Packet)
     {
-        // Convert our Packet into PacketLoginUser
-        PacketLoginUser* packetUser = (PacketLoginUser*)packet;
-
-        // Query Auth account database
-        QueryDatabase database("auth");
-        database.PrepareQuery("SELECT id, user_name, sha_pass FROM account WHERE user_name = ?");
-        database.GetStatement()->setString(1, static_cast<std::string>(packetUser->sUserID).c_str());
-        database.ExecuteQuery();
-
-        // If username doesn't exist in database
-        if (!database.GetResult())
-        {
-            PacketAccountLoginCode accountLogin;
-            accountLogin.sLength = sizeof(accountLogin);
-            accountLogin.sHeader = ServerPacketHeader::SMSG_ACCOUNT_LOGIN_CODE;
-            accountLogin.sReserved = 0;
-            accountLogin.sCode = AccountLogin::ACCOUNTLOGIN_IncorrectName;
-            accountLogin.sFailCode = 1;
-            accountLogin.sEncKeyIndex = 0;
-            accountLogin.sEncrypted = 1;
-            SendPacket((uint8*)(Packet*)&accountLogin, accountLogin.sLength);
-            return;
-        }
-
-        Result* Results = database.Fetch();
-        std::string hashedPassword = Results->GetString(3);
-
-        // If our hashed password does not match the same in the database, then send incorrect password packet
-        if (CalculateSHA1Hash(boost::to_upper_copy<std::string>(static_cast<std::string>(packetUser->sUserID)
-            + ":" + static_cast<std::string>(packetUser->sPassword))) != hashedPassword)
-        {
-            PacketAccountLoginCode accountLogin;
-            accountLogin.sLength = sizeof(accountLogin);
-            accountLogin.sHeader = ServerPacketHeader::SMSG_ACCOUNT_LOGIN_CODE;
-            accountLogin.sReserved = 0;
-            accountLogin.sCode = AccountLogin::ACCOUNTLOGIN_IncorrectPassword;
-            accountLogin.sFailCode = 1;
-            accountLogin.sEncKeyIndex = 0;
-            accountLogin.sEncrypted = 1;
-
-            SendPacket((uint8*)(Packet*)&accountLogin, accountLogin.sLength);
-            return;
-        }
-
-        PacketChecksumFunctionList packetCheck;
-        packetCheck.sLength = sizeof(PacketChecksumFunctionList);
-        packetCheck.sHeader = ServerPacketHeader::SMSG_CHECK_SUM;
-        packetCheck.sKey = CHECK_SUM_PACKET;
-        packetCheck.sEncKeyIndex = 0;
-        packetCheck.sEncrypted = 1;
-        SendPacket((uint8*)(Packet*)&packetCheck, packetCheck.sLength);
-
-        SendUserSuccess(Results);
     }
-    //-----------------------------------------------//
-    void AuthSocket::HandlePing(const Packet* packet)
-    {
-        if (((PacketPing*)&packet)->sLength != sizeof(PacketPing))
-            return;
-
-        ((PacketPing*)&packet)->sTick = GetTickCount();
-        SendPacket((uint8*)&packet, packet->sLength);
-    }
-    //-----------------------------------------------//
-    void AuthSocket::SendUserSuccess(Result* Results)
-    {
-        PacketUserInfo packetUser;
-        packetUser.sLength = sizeof(PacketUserInfo);
-        packetUser.sHeader = ServerPacketHeader::SMSG_USER_INFO;
-        strcpy(packetUser.sUserID, Results->GetString(2).c_str());
-        packetUser.sCharCount = 0; // TODO; code character data
-        packetUser.sEncKeyIndex = 0;
-        packetUser.sEncrypted = 1;
-        SendPacket((uint8*)(Packet*)&packetUser, packetUser.sLength);
-
-        QueryDatabase database("auth");
-        database.PrepareQuery("SELECT id, ip_address, port, server_name, realm_name FROM server_realms");
-        database.ExecuteQuery();
-
-        if (!database.GetResult())
-            return;
-
-        Results = database.Fetch();
-
-        PacketServerList serverList;
-        serverList.sLength = sizeof(Packet) + sizeof(PacketServerList::Header);
-        serverList.sHeader = ServerPacketHeader::SMSG_SERVER_LIST;
-        strcpy(serverList.sHeaderStruct.sServerName, Results->GetString(4).c_str());
-        serverList.sHeaderStruct.sTime = GetUnixTimeStamp();
-        serverList.sHeaderStruct.sTicket = Maths::GetRandomNumber(1, 1000);
-        serverList.sHeaderStruct.sUnknown = 0;
-        serverList.sHeaderStruct.sClanServerIndex = 0; // TOOD; What is this?
-        serverList.sHeaderStruct.sGameServers = Results->GetRowCount();
-
-        uint8 counter = 0;
-        do
-        {
-            // Client requires us to send this 3 times... original source does this aswell
-            strcpy(serverList.sServersStruct[counter].sName, Results->GetString(5).c_str());
-            strcpy(serverList.sServersStruct[counter].sIP[0], Results->GetString(2).c_str());
-            strcpy(serverList.sServersStruct[counter].sIP[1], Results->GetString(2).c_str());
-            strcpy(serverList.sServersStruct[counter].sIP[2], Results->GetString(2).c_str());
-
-            serverList.sServersStruct[counter].sPort[0] = 10010;
-            serverList.sServersStruct[counter].sPort[1] = 10010;
-            serverList.sServersStruct[counter].sPort[2] = 10010;
-            serverList.sServersStruct[counter].sPort[3] = 0;
-
-            counter++;
-        } while (Results->GetNextResult());
-
-        serverList.sLength += ((sizeof(PacketServerList::Server) * serverList.sHeaderStruct.sGameServers) + (sizeof(PacketServerList::Server) * (0)));
-        serverList.sEncKeyIndex = 0;
-        serverList.sEncrypted = 1;
-        SendPacket((uint8*)(Packet*)&serverList, serverList.sLength);
-    }
-    void AuthSocket::HandleNULL(const Packet* packet)
-    {
-        LOG_ERROR << sOpcode->GetClientPacketName(packet->sHeader) << " not currently handled!";
-    }
-    //-----------------------------------------------//
-    void AuthSocket::HandleServerMessage(const Packet* packet)
-    {
-        // Should we put anything here?...
-    }
-    //-----------------------------------------------//
-}
-//-----------------------------------------------//
+} ///< NAMESPACE STEERSTONE

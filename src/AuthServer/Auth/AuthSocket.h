@@ -16,41 +16,77 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _PristonTale_AuthSocket_h_
-#define _PristonTale_AuthSocket_h_
-#include "Network/Socket.h"
+#ifndef AUTH_AUTH_SOCKET_h
+#define AUTH_AUTH_SOCKET_h
 #include "Opcodes.h"
+#include "Network/Listener.h"
 #include "Database/QueryDatabase.h"
+#endif /* A UTH_AUTH_SOCKET_h */
 
-namespace Priston
+namespace SteerStone
 {
+    /// Class which inherits from Socket class when a successfull connection is made
     class AuthSocket : public Socket
     {
     public:
-        AuthSocket(boost::asio::io_service& service, std::function<void(Socket*)> closeHandler);
+        /// Constructor 
+        /// @p_Service : Boost Service
+        /// @p_CloseHandler : Close Handler Custom function
+        AuthSocket(boost::asio::io_service& p_IoService, std::function<void(Socket*)> p_CloseHandler);
+
+        /// Deconstructor
         ~AuthSocket();
 
     public:
-        ////////////////////////
-        //      HANDLERS      //
-        ///////////////////////
-        void ExecutePacket(const OpcodeHandler& opHandler, const Packet* packet);
-        void HandleNULL(const Packet* packet);
-        void HandleServerMessage(const Packet* packet);
-        void HandleLoginUser(const Packet* packet);
-        void HandlePing(const Packet* packet);
+        /// ExecutePacket
+        /// @p_OpHandler : Function which will be called
+        /// @p_Packet : Packet we are passing to the function
+        void ExecutePacket(const OpcodeHandler& p_OpHandler, const Packet* p_Packet);
+
+        /// HandleLoginUser
+        /// Checks Login data and sends back result to client
+        /// @p_Packet : Packet sent by client
+        void HandleLoginUser(const Packet* p_Packet);
+
+        /// HandlePing
+        /// Keep connection alive by client and server
+        /// @p_Packet : Packet sent by client
+        void HandlePing(const Packet* p_Packet);
+
+        /// HandleServerMessage
+        /// Default Server handler
+        void HandleServerMessage(const Packet* p_Packet);
+
+        /// HandleNULl
+        /// Default Handler if we have not handled the packet yet
+        /// @p_Packet : Packet sent by client
+        void HandleNULL(const Packet* p_Packet);
 
     private:
+        /// ProcessIncomingData
+        /// Handle incoming data from client
         virtual bool ProcessIncomingData() override;
+
+        /// SendVersionCheck
+        /// Send expection version to client
         virtual void SendVersionCheck() override;
 
     private:
-        void SendPacket(const uint8* packet, const uint16& length);
+        /// SendPacket 
+        /// @p_Packet : Buffer which holds our data to be send to the client
+        /// @p_Length : Size of buffer
+        void SendPacket(uint8* p_Packet, const uint16& p_Length);
+
+        /// DecryptPacket
+        /// Decrypt incoming packet from client
         const Packet* DecryptPacket();
 
-    private:
-        void SendUserSuccess(Result* Results);
-    };
-}
+        /// SendUserSuccess
+        /// Client can now login into the game server
+        /// @p_Result : Database result
+        void SendUserSuccess(Result* p_Result);
 
-#endif /* _PristonTale_AuthSocket_h_ */
+    private:
+        uint32 p_PingDiff;          ///< Last time server recieved a pong from client
+    };
+} ///< NAMESPACE STEERSTONE

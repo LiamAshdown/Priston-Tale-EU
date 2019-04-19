@@ -22,7 +22,7 @@
 #include "Opcode/Opcodes.h"
 #include <mutex>
 
-namespace Priston
+namespace SteerStone
 {
     class WorldSocket;
 

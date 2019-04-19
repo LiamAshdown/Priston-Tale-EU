@@ -15,15 +15,14 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-//-----------------------------------------------//
+
 #include "Session.h"
 #include "Database/QueryDatabase.h"
 #include "Config/Config.h"
-//-----------------------------------------------//
-namespace Priston
-{
-    //-----------------------------------------------//
 
-    //-----------------------------------------------//
+namespace SteerStone
+{
+    
+
+    
 }
-//-----------------------------------------------//

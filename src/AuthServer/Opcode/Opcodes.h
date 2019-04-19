@@ -16,14 +16,14 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _PristonTale_Opcodes_h_
-#define _PristonTale_Opcodes_h_
+#ifndef _OPCODE_OPCODES_h
+#define _OPCODE_OPCODES_h
 #include "Common/SharedDefines.h"
 #include "AuthStructures.h"
+#endif /* _OPCODE_OPCODES_h */
 
 enum ClientPacketHeader
 {
-    ///< CMSG
 	CMSG_VERSION									= 0x4847008A,
 	CMSG_LOGIN_USER								    = 0x48480001,
     CMSG_PING                                       = 0x435A0007,
@@ -40,7 +40,7 @@ enum ServerPacketHeader
     SMSG_SERVER_LIST                                = 0x484700C0,
 };
 
-namespace Priston
+namespace SteerStone
 {
     class AuthSocket;
 
@@ -67,9 +67,6 @@ namespace Priston
         OpcodeHandler const& GetClientPacket(const uint64& Id);
         OpcodeHandler const& GetServerPacket(const uint64& Id);
 
-        const char* GetClientPacketName(const uint64& Id);
-        const char* GetServerPacketName(const uint64& Id);
-
     private:
         void StoreClientPacket(const uint64& opcode, char const* name, void (AuthSocket::*handler)(const Packet* packet));
         void StoreServerPacket(const uint64& opcode, char const* name, void (AuthSocket::*handler)(const Packet* packet));
@@ -81,6 +78,4 @@ namespace Priston
     };
 }
 
-#define sOpcode Priston::Opcodes::instance()
-
-#endif /* _PristonTale_Opcodes_h_ */
+#define sOpcode SteerStone::Opcodes::instance()

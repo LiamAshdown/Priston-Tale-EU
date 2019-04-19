@@ -107,16 +107,17 @@ namespace SteerStone
         /// ProcessIncomingData - Virtual Function which passes into our derived class Socket
         virtual bool ProcessIncomingData() = 0;
 
-        /// ProcessIncomingData - Get the current read position
+        /// SendVersionCheck
+        /// Check expected client version
+        virtual void SendVersionCheck() = 0;
+
+        /// InPeak - Get the current read position
          uint8 const* InPeak();
 
         /// ForceFlushOut - Send our current data in our buffer
         void ForceFlushOut();
 
     private:
-        /// InitializeClientServer - Initialize client/server response
-        void InitializeClientServer();
-
         /// StartAsyncRead - Read incoming packets
         void StartAsyncRead();
 

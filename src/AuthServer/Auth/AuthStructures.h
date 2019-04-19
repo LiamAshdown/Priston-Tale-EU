@@ -29,7 +29,7 @@
 */
 
 ///< ENUMS
-enum AccountLogin
+enum LoginError
 {
 	ACCOUNTLOGIN_Success			        = 1,	                        ///< SUCCESSFULL
 	ACCOUNTLOGIN_ConnectionFailed	        = 0,	                        ///< CONNECTION FAILED
@@ -54,127 +54,127 @@ enum CheckSum
 ///< STRUCTURES
 struct PacketReceiving
 {
-    PacketReceiving() : sInUse(0), sDelete(0) {}
-    bool		  sInUse;                                                   ///< USE PACKET
-    bool		  sDelete;                                                  ///< DELETE PACKET?
-    uint8		  sPacket[8192];                                            ///< PACKET
+    PacketReceiving() : InUse(0), Delete(0) {}
+    bool		                            InUse;                      ///< USE PACKET
+    bool		                            Delete;                     ///< DELETE PACKET?
+    uint8		                            Packet[8192];               ///< PACKET
 };
 
 typedef struct PacketStruct
 {
-    PacketStruct() : sLength(0), sEncKeyIndex(0), sEncrypted(0), sHeader(0) {}
-    uint16	                                sLength;				        ///< PACKET LENGTH
-    uint8	                                sEncKeyIndex;		            ///< PACKET ENCRYPTION KEY INDEX
-    uint8	                                sEncrypted;		                ///< PACKET ENCRYPTED
-    uint32	                                sHeader;				        ///< PACKET HEADER
+    PacketStruct() : Length(0), EncKeyIndex(0), Encrypted(0), PacketHeader(0) {}
+    uint16	                                Length;				        ///< PACKET LENGTH
+    uint8	                                EncKeyIndex;		        ///< PACKET ENCRYPTION KEY INDEX
+    uint8	                                Encrypted;		            ///< PACKET ENCRYPTED
+    uint32	                                PacketHeader;				///< PACKET HEADER
 }Packet;
 
 typedef struct PacketLoginStruct : PacketStruct
 {
-	uint32									sUnk[3];                        ///< UNKNOWN    
-	char									sUserID[32];                    ///< USERID
-	char									sPassword[32];                  ///< PASSWORD
-	char									sMacAddr[20];                   ///< MAC ADDRESS
-	char									sPCName[32];                    ///< PC NAME
-    uint32									sSerialHD;                      ///< SERIAL HARDWARE ID
-	char									sVideoName[256];                ///< GAME NAME
-    uint32									sWidthScreen;                   ///< GAME WIDTH
-    uint32									sHeightScreen;                  ///< GAME HEIGHT
-    uint32									sSystemOS;                      ///< SYSTEM OPERATING SYSTEM
+	uint32									Unk[3];                        ///< UNKNOWN    
+	char									UserID[32];                    ///< USERID
+	char									Password[32];                  ///< PASSWORD
+	char									MacAddr[20];                   ///< MAC ADDRESS
+	char									PCName[32];                    ///< PC NAME
+    uint32									SerialHD;                      ///< SERIAL HARDWARE ID
+	char									VideoName[256];                ///< GAME NAME
+    uint32									WidthScreen;                   ///< GAME WIDTH
+    uint32									HeightScreen;                  ///< GAME HEIGHT
+    uint32									SystemOS;                      ///< SYSTEM OPERATING SYSTEM
 }PacketLoginUser;
 
 typedef struct PacketAccountLoginCodeStruct : PacketStruct
 {
-    uint32			                        sReserved;                      ///< NAME RESERVED          
-    AccountLogin	                        sCode;                          ///< AccountLogin ENUM
-    int32				                    sFailCode;                      ///< FAIL CODE
-    char			                        sMessage[256];                  ///< REASON WHY 
+    uint32			                        Reserved;                      ///< NAME RESERVED          
+    LoginError	                            Code;                          ///< LoginError ENUM
+    int32				                    FailCode;                      ///< FAIL CODE
+    char			                        Message[256];                  ///< REASON WHY 
 }PacketAccountLoginCode;
 
 typedef struct PacketSendingStruct
 {
     union
     {
-        bool	                            sInUse;                         ///< NOT USED       
-        uint32	                            sCount;                         ///< NOT USED
+        bool	                            InUse;                         ///< NOT USED       
+        uint32	                            Count;                         ///< NOT USED
     };
-    uint32		                            sSize;                          ///< PACKET SIZE?
-    uint8		                            sPacket[8192];                  ///< PACKET
+    uint32		                            Size;                          ///< PACKET SIZE?
+    uint8		                            Packet[8192];                  ///< PACKET
 }PacketSending;
 
 typedef struct ChecksumFunctionStruct
 {
-    uint32								    sSize;                          ///< SIZE
-    uint32								    sAddress;                       ///< ADDRRESS?
-    uint32									sCheckSum;                      ///< UNKNOWN
+    uint32								    Size;                          ///< SIZE
+    uint32								    Address;                       ///< ADDRRESS?
+    uint32									CheckSum;                      ///< UNKNOWN
 }ChecksumFunction;
 
 typedef struct PacketChecksumFunctionListStructs : Packet
 {
-    uint8									sKey;                           ///< KEY ENCRYPTION?
-    ChecksumFunction					    sCheckSum[400];                 ///< UNKNOWN
+    uint8									Key;                           ///< KEY ENCRYPTION?
+    ChecksumFunction					    CheckSum[400];                 ///< UNKNOWN
 }PacketChecksumFunctionList;
 
 typedef struct PacketWindowListStruct : Packet
 {
-    int									    sCount;                         ///< NOT USED
-    char									sWindowName[50][64];            ///< CLIENT WINDOW NAME 
+    int									    Count;                         ///< NOT USED
+    char									WindowName[50][64];            ///< CLIENT WINDOW NAME 
 }PacketWindowList;
 
 typedef struct PacketPingStruct : Packet
 {
-    uint32	                                sTime;                          ///< TIME SINCE TICK
-    uint32	                                sTick;                          ///< GetTickCount
+    uint32	                                Time;                          ///< TIME SINCE TICK
+    uint32	                                Tick;                          ///< GetTickCount
 }PacketPing;
 
 typedef struct	TransCharInfoStruct
 {
-    char	                                sName[32];				        ///< CHARACTER NAME
-    char	                                sModelName[64];		            ///< MODEL NAME
-    char	                                sModelName2[64];		        ///< MODEL NAME 2
-    uint32	                                sJobCode;			            ///< JOB CODE
-    uint32		                            sLevel;					        ///< CHARACTER LEVEL
-    uint32	                                sBrood;					        ///< BROOD
-    uint32	                                sArmorCode;			            ///< ARMOR CODE
-    uint32		                            sStartResult;			        /// BYTE Result?
-    uint32		                            sPosX;                          ///< CHARACTER X LOCATION
-    uint32		                            sPosZ;			                ///< CHARACTER Z LOCATION
-    uint32	                                sTemp[13];		                ///< UNKNOWN
+    char	                                Name[32];				        ///< CHARACTER NAME
+    char	                                ModelName[64];		            ///< MODEL NAME
+    char	                                ModelName2[64];		        ///< MODEL NAME 2
+    uint32	                                JobCode;			            ///< JOB CODE
+    uint32		                            Level;					        ///< CHARACTER LEVEL
+    uint32	                                Brood;					        ///< BROOD
+    uint32	                                ArmorCode;			            ///< ARMOR CODE
+    uint32		                            StartResult;			        /// BYTE Result?
+    uint32		                            PosX;                          ///< CHARACTER X LOCATION
+    uint32		                            PosZ;			                ///< CHARACTER Z LOCATION
+    uint32	                                Temp[13];		                ///< UNKNOWN
 }TransCharInfo;
 
 typedef struct PacketVersionStruct : Packet
 {
-    bool									sServerFull;                    ///< IS SERVER FULL? 
-    uint32								    sVersion;                       ///< VERSION EXPECTED
-    uint32								    sUnk2;                          ///< UNKNOWN - NOT USED?
+    bool									ServerFull;                    ///< IS SERVER FULL? 
+    uint32								    Version;                       ///< VERSION EXPECTED
+    uint32								    Unk2;                          ///< UNKNOWN - NOT USED?
 }PacketVersion;
 
 typedef struct	PacketUserInfoStruct : Packet
 {
-    char									sUserID[32];                    ///< ACCOUNT NAME
-    uint32								    sCharCount;                     ///< NUMBER OF CHARACTERS
-    TransCharInfo						    sCharacterData[6];              ///< CHARACTER DATA
+    char									UserID[32];                    ///< ACCOUNT NAME
+    uint32								    CharCount;                     ///< NUMBER OF CHARACTERS
+    TransCharInfo						    CharacterData[6];              ///< CHARACTER DATA
 }PacketUserInfo;
 
 typedef struct PacketServerListStruct : Packet
 {
     struct Header
     {
-        char				                sServerName[16];                ///< SERVER NAME
-        uint32				                sTime;                          ///< TIME IN UNIX
-        uint32					            sTicket;                        ///< TICKET ID - NOT SURE WHAT THIS IS
-        uint32				                sUnknown;                       ///< UNKNOWN    
-        uint32					            sClanServerIndex;               ///< CLAN SERVER - NOT SURE WHAT THIS IS
-        uint32					            sGameServers;                   ///< NUMBER OF SERVERS
+        char				                ServerName[16];                ///< SERVER NAME
+        uint32				                Time;                          ///< TIME IN UNIX
+        uint32					            Ticket;                        ///< TICKET ID - NOT SURE WHAT THIS IS
+        uint32				                Unknown;                       ///< UNKNOWN    
+        uint32					            ClanServerIndex;               ///< CLAN SERVER - NOT SURE WHAT THIS IS
+        uint32					            GameServers;                   ///< NUMBER OF SERVERS
     };
 
     struct Server
     {
-        char				                sName[32];                      ///< NAME OF REALM
-        char				                sIP[3][20];                     ///< IP OF REALM
-        uint32					            sPort[4];                       ///< PORT OF REALM
+        char				                Name[32];                      ///< NAME OF REALM
+        char				                IP[3][20];                     ///< IP OF REALM
+        uint32					            Port[4];                       ///< PORT OF REALM
     };
 
-    Header					                sHeaderStruct;                  ///< HEADER STRUCT
-    Server					                sServersStruct[4];              ///< SERVER STRUCT
+    Header					                HeaderStruct;                  ///< HEADER STRUCT
+    Server					                ServersStruct[4];              ///< SERVER STRUCT
 }PacketServerList;

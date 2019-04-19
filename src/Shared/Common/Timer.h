@@ -65,4 +65,4 @@ namespace SteerStone
         };
     } ///< NAMESPACE TIME
 } ///< NAMESPACE STEERSTONE
-#define sHotelTimer SteerStone::Time::WorldTimer::instance() 
+#define sTimer SteerStone::Time::WorldTimer::instance() 

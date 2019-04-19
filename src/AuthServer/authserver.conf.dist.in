@@ -51,19 +51,19 @@ BindIP = "127.0.0.1"
 NetworkThreadProcessors = 1
 
 #
-#    MaximumConnections
-#        Description: Maximum connections server can accept before shows 'Server is full' error
-#        Default:     1000
-
-MaximumConnections = 1000
-
-#
 #    ClientVersion
 #        Description: Client version which the server is expecting
 #        Default:     1048
 
 ClientVersion = 1048
 
+#
+#    PongTimer
+#        Description: Expecting to recieve a pong from client within time window
+#        Default:     30000 (in milliseconds)
+
+PongTimer = 30000
+#
 #
 ###################################################################################################
 
@@ -81,11 +81,11 @@ ClientVersion = 1048
 AuthDatabaseInfo = "127.0.0.1;3306;quad;quad;habbo"
 
 #
-#    AuthDatabase.WorkerThreads
+#    AuthDatabase.ConnectionPool
 #        Description: The amount of MySQL connections spawned to handle.
-#        Default:     1 - (LoginDatabase.WorkerThreads)
+#        Default:     10 - (LoginDatabase.ConnectionPool)
 
-AuthDatabase.WorkerThreads  = 1
+AuthDatabase.ConnectionPool  = 10
 
 #
 ###################################################################################################

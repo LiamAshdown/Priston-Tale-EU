@@ -21,7 +21,7 @@
 #include "Common/SharedDefines.h"
 #include "Session.h"
 
-namespace Priston
+namespace SteerStone
 {
     typedef std::unordered_map<uint32, Session*> PlayerMap;
 

@@ -15,15 +15,15 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-//-----------------------------------------------//
+
 #include "WorldSocket.h"
 #include "Network/Listener.h"
 #include "Common/SharedDefines.h"
 #include "Config/Config.h"
 #include "Database/Database.h"
-//-----------------------------------------------//
+
 bool StartUpDataBase();
-//-----------------------------------------------//
+
 int main()
 {
     // Initialize our logger
@@ -60,7 +60,7 @@ int main()
 
     return 0;
 }
-//-----------------------------------------------//
+
 bool StartUpDataBase()
 {
     std::string dbstring = sConfig->GetStringDefault("WorldDatabaseInfo");

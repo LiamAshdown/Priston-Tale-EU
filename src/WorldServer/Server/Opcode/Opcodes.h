@@ -33,7 +33,7 @@ enum ServerPacketHeader
     SMSG_PONG                                       = 0x435A0007,
 };
 
-namespace Priston
+namespace SteerStone
 {
     class WorldSocket;
 

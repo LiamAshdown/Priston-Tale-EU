@@ -15,81 +15,62 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-//-----------------------------------------------//
+
 #include "AuthSocket.h"
-#include "Network/Listener.h"
 #include "Common/SharedDefines.h"
 #include "Config/Config.h"
-#include "Database/QueryDatabase.h"
-//-----------------------------------------------//
-bool StartUpDataBase();
-//-----------------------------------------------//
+
+bool LoadDatabase();
+
 int main()
 {
-    // Initialize our logger
+    /// Initialize our logger
     static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
     plog::init(plog::verbose, &consoleAppender);
 
-    if (!sConfig->SetSource("authserver.conf"))
+    LOG_NONE << " ______     ______   ______     ______     ______     ______     ______   ______     __   __     ______ ";
+    LOG_NONE << "/\\  ___\\   /\\__  _\\ /\\  ___\\   /\\  ___\\   /\\  == \\   /\\  ___\\   /\\__  _\\ /\\  __ \\   /\\ ' - .\\ \ / \\  ___\\     ";
+    LOG_NONE << "\\ \\___  \\  \\/_/\\ \\/ \\ \\  __\\   \\ \\  __\\   \\ \\  __<   \\ \\___  \\  \\/_/\\ \\/ \\ \\ \\/\\ \\  \\ \\ \\-.  \\  \\ \\  __\\     ";
+    LOG_NONE << " \\/\\_____\\    \\ \\_\\  \\ \\_____\\  \\ \\_____\\  \\ \\_\\ \\_\\  \\/\\_____\\    \\ \\_\\  \\ \\_____\\  \\ \\_\\\\'\\_\\  \\ \\_____\\   ";
+    LOG_NONE << "  \\/_____/     \\/_/   \\/_____/   \\/_____/   \\/_/ /_/   \\/_____/     \\/_/   \\/_____/   \\/_/ \\/_/   \\/_____/    ";
+    LOG_NONE << "                                                                    Powered by Boost & MySQL";
+
+
+    if (!sConfig->SetFile("authserver.conf"))
     {
         LOG_ERROR << "Could not find configuration file authserver.conf";
+        LOG_ERROR << "Shutting Down....";
         Sleep(5000);
-        return 1;
+        return -1;
     }
     else
-        LOG_INFO << "Successfully found configuration file!";
+        LOG_INFO << "Successfully loaded configuration file!";
 
-    if (!StartUpDataBase())
+    sOpcode->InitializePackets();
+
+    if (!LoadDatabase())
     {
+        LOG_ERROR << "Could not load database";
         LOG_ERROR << "Shutting Down....";
         Sleep(5000);
         return -1;
     }
 
-    sOpcode->InitializePackets();
-
-    Priston::Listener<Priston::AuthSocket> listener(sConfig->GetStringDefault("BindIP", "127.0.0.1"), sConfig->GetIntDefault("AuthServerPort", DEFAULT_AUTH_PORT), 
+    SteerStone::Listener<SteerStone::AuthSocket> listener(sConfig->GetStringDefault("BindIP", "127.0.0.1"), sConfig->GetIntDefault("AuthServerPort", DEFAULT_AUTH_PORT), 
         sConfig->GetIntDefault("NetworkThreadProcessors", 1));
 
     LOG_INFO << "Successfully listening on " << sConfig->GetStringDefault("BindIP", "127.0.0.1") << " and binded on " << sConfig->GetIntDefault("AuthServerPort", DEFAULT_AUTH_PORT);
     
-    while (true)
-    {
-
-    }
+    /// Keep application alive
+    while (true){}
 
     return 0;
 }
-//-----------------------------------------------//
-bool StartUpDataBase()
+
+bool LoadDatabase()
 {
-    std::string dbstring = sConfig->GetStringDefault("AuthDatabaseInfo");
-    if (dbstring.empty())
-    {
-        LOG_ERROR << "Database not specified";
-        return false;
-    }
-
-    if (!sDatabase->InitializeConnectionPool(dbstring.c_str(), sConfig->GetIntDefault("AuthDatabase.WorkerThreads", 1)))
-    {
-        LOG_ERROR << "Couldn't connect to the database...";
-        return false;
-    }
+    if (sDatabase->CreateDatabase(sConfig->GetStringDefault("AuthDatabaseInfo").c_str(), sConfig->GetIntDefault("AuthDatabase.ConnectionPool", 10)))
+        return true;
     else
-    {
-        LOG_INFO << "Successfully connected to " << dbstring << " database";
-
-        // Check if we have a realm
-        Priston::QueryDatabase database("auth");
-        database.PrepareQuery("SELECT id, ip_address, port, server_name, realm_name FROM server_realms");
-        database.ExecuteQuery();
-
-        if (!database.GetResult())
-        {
-            LOG_ERROR << "server_realms is empty...";
-            return false;
-        }
-    }
-
-    return true;
+        return false;
 }

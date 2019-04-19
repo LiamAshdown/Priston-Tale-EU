@@ -15,26 +15,26 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-//-----------------------------------------------//
+
 #include "WorldSocket.h"
 #include "Database/QueryDatabase.h"
 #include "Config/Config.h"
 #include "Network/Listener.h"
-//-----------------------------------------------//
-namespace Priston
+
+namespace SteerStone
 {
-    //-----------------------------------------------//
+    
     WorldSocket::WorldSocket(boost::asio::io_service& service, std::function<void(Socket*)> closeHandler) :
         Socket(service, std::move(closeHandler))
     {
     }
-    //-----------------------------------------------//
+    
     WorldSocket::~WorldSocket()
     {
         IF_LOG(plog::debug)
             LOG_DEBUG << "Destructor WorldSocket called!";
     }
-    //-----------------------------------------------//
+    
     bool WorldSocket::ProcessIncomingData()
     {
         if (const Packet* packet = DecryptPacket())
@@ -55,7 +55,7 @@ namespace Priston
 
         return false;
     }
-    //-----------------------------------------------//
+    
     void WorldSocket::SendPacket(const uint8* packet, const uint16& length)
     {
         // TODO; Optimize this code. We don't need to create a new struct.
@@ -67,7 +67,7 @@ namespace Priston
 
         Write((const char*)&packetSending.sPacket, packetSending.sSize);
     }
-    //-----------------------------------------------//
+    
     const Packet* WorldSocket::DecryptPacket()
     {
         PacketReceiving packetRecieving{};
@@ -76,7 +76,7 @@ namespace Priston
 
         return (Packet*)&packetRecieving.sPacket;
     }
-    //-----------------------------------------------//
+    
     void WorldSocket::SendVersionCheck()
     {
         // Send expected version to client
@@ -90,7 +90,7 @@ namespace Priston
         packetVersion.sVersion = sConfig->GetIntDefault("ClientVersion", 1048);
         SendPacket((uint8*)(Packet*)&packetVersion, packetVersion.sLength);
     }
-    //-----------------------------------------------//
+    
     void WorldSocket::HandlePing(const Packet* packet)
     {
         if (((PacketPing*)&packet)->sLength != sizeof(PacketPing))
@@ -100,4 +100,3 @@ namespace Priston
         SendPacket((uint8*)&packet, packet->sLength);
     }
 }
-//-----------------------------------------------//

@@ -31,27 +31,9 @@ namespace SteerStone
         /// Return a random number in specified range
         uint32 GetRandomUint32(uint32 const p_Min, uint32 const p_Max);
 
-        /// CalculateWalkDirection
-        /// @p_CurrentX - Current X axis
-        /// @p_CurrentY - Current Y axis
-        /// @p_NextX - X axis on new position
-        /// @p_NextY - Y axis on new position
-        int16 CalculateWalkDirection(int16 const p_CurrentX, int16 const p_CurrentY, int16 const p_NextX, int16 const p_NextY);
-
-        /// CalculateHumanDirection
-        /// @p_CurrentX - Current X axis
-        /// @p_CurrentY - Current Y axis
-        /// @p_LookToX - Look To X axis     
-        /// @p_LookToY - Look To Y axis
-        int16 CalculateHumanDirection(int16 const m_CurrentX, int16 const m_CurrentY, int16 const p_LookToX, int16 const p_LookToY);
-
-        /// CalculateHeadRotation
-        /// @p_Rotation - Current Rotation
-        /// @p_CurrentX - Current X axis
-        /// @p_CurrentY - Current Y axis
-        /// @p_LookToX - Look To X axis
-        /// @p_LookToY - Look To Y axis
-        int16 CalculateHeadRotation(int16 const p_Rotation, int16 const m_CurrentX, int16 const m_CurrentY, int16 const p_LookToX, int16 const p_LookToY);
+        /// GetUnitTimeStamp
+        /// Returns time in unix
+        uint64 GetUnixTimeStamp();
 
     } ///< NAMESPACE MATHS
 } ///< NAMESPACE STEERSTONE

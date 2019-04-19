@@ -56,7 +56,8 @@ typedef std::uint8_t uint8;
 typedef std::vector<std::string> Tokens;
 typedef boost::multi_array<int16, 2> StaticGridArray; ///< Used for pathfinding
 
-#define DEFAULT_SERVER_PORT 37120
+#define DEFAULT_AUTH_PORT 10009
+#define DEFAULT_WORLD_PORT 10010
 #define UPDATE_WORLD_TIMER 500
 #define PUBLIC_ROOM_OFFSET 1000
 

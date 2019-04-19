@@ -15,29 +15,28 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-//-----------------------------------------------//
+
 #include "World.h"
 #include "Database/QueryDatabase.h"
 #include "Config/Config.h"
-//-----------------------------------------------//
-namespace Priston
+
+namespace SteerStone
 {
-    //-----------------------------------------------//
+    
     World* World::instance()
     {
         static World instance;
         return &instance;
     }
-    //-----------------------------------------------//
+    
     World::World()
     {
     }
-    //-----------------------------------------------//
+    
     World::~World()
     {
         IF_LOG(plog::debug)
             LOG_DEBUG << "Destructor World called!";
     }
-    //-----------------------------------------------//
+    
 }
-//-----------------------------------------------//

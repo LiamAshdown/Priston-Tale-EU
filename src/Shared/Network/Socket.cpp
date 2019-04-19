@@ -46,7 +46,7 @@ namespace SteerStone
         m_OutBuffer.reset(new PacketBuffer);
         m_InBuffer.reset(new PacketBuffer);
 
-        InitializeClientServer();
+        SendVersionCheck();
 
         StartAsyncRead();
 
@@ -80,17 +80,7 @@ namespace SteerStone
     {
         return IsClosed();
     }
-    
-    /// InitializeClientServer - Initialize client/server response
-    void Socket::InitializeClientServer()
-    {
-        StringBuffer l_Buffer;
-        l_Buffer.AppendBase64(0);
-        l_Buffer.AppendSOH();
-
-        Write((const char*)l_Buffer.GetContents(), l_Buffer.GetSize());
-    }
-    
+   
     /// StartAsyncRead - Read incoming packets
     void Socket::StartAsyncRead()
     {
